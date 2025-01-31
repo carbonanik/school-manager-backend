@@ -14,6 +14,8 @@ COPY . .
 
 # Build the application
 RUN npm run build
+# Ensure Prisma Client is generated
+RUN npx prisma generate
 
 # Stage 2: Production Image
 FROM node:20-alpine
@@ -26,6 +28,9 @@ RUN npm install --omit=dev
 
 # Copy built application from builder
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma ./prisma
+# Ensure Prisma Client is included
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma  
 
 # Expose the port (optional, modify as needed)
 EXPOSE 3001
