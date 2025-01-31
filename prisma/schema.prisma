@@ -1,0 +1,230 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AuthInfo {
+  id           Int           @id @default(autoincrement())
+  username     String        @unique()
+  password     String
+  //
+  CentralAdmin CentralAdmin?
+  SchoolAdmin  SchoolAdmin?
+  Teacher      Teacher?
+  Student      Student?
+  Parent       Parent?
+}
+
+model CentralAdmin {
+  id Int @id @default(autoincrement())
+
+  auth   AuthInfo @relation(fields: [authId], references: [id])
+  authId Int      @unique()
+
+  email  String?
+  name   String?
+  school School[]
+}
+
+model School {
+  id             Int           @id @default(autoincrement())
+  name           String
+  address        String?
+  phone          String?
+  email          String?
+  logo           String?
+  description    String?
+  centralAdminId Int?
+  centralAdmin   CentralAdmin? @relation(fields: [centralAdminId], references: [id])
+  school_admin   SchoolAdmin[]
+  teacher        Teacher[]
+  student        Student[]
+  Parent         Parent[]
+  Class          Class[]
+  Subject        Subject[]
+  Lesson         Lesson[]
+  Attendence     Attendence[]
+  Fee            Fee[]
+  Expense        Expense[]
+  Accounts       Accounts[]
+}
+
+model SchoolAdmin {
+  id Int @id @default(autoincrement())
+
+  auth   AuthInfo @relation(fields: [authId], references: [id])
+  authId Int      @unique()
+
+  name    String?
+  email   String?
+  schooId Int?
+  school  School? @relation(fields: [schooId], references: [id])
+}
+
+model Teacher {
+  id Int @id @default(autoincrement())
+
+  auth   AuthInfo? @relation(fields: [authId], references: [id])
+  authId Int?      @unique()
+
+  firstName  String?
+  lastName   String?
+  email      String?
+  phone      String?
+  address    String?
+  bloodGroup String?
+  birthDate  DateTime?
+  gender     String?
+  image      String?
+  //
+  schoolId   Int?
+  school     School?   @relation(fields: [schoolId], references: [id])
+  Subject    Subject[]
+  Class      Class[]
+  Lesson     Lesson[]
+}
+
+model Student {
+  id Int @id @default(autoincrement())
+
+  auth   AuthInfo? @relation(fields: [authId], references: [id])
+  authId Int?      @unique()
+
+  parentId   Int?
+  parent     Parent?      @relation(fields: [parentId], references: [id])
+  schoolId   Int?
+  school     School?      @relation(fields: [schoolId], references: [id])
+  //
+  firstName  String?
+  lastName   String?
+  email      String?
+  phone      String?
+  address    String?
+  bloodGroup String?
+  birthDate  DateTime?
+  gender     String?
+  image      String?
+  //
+  Attendence Attendence[]
+  Fee        Fee[]
+}
+
+model Parent {
+  id Int @id @default(autoincrement())
+
+  auth   AuthInfo? @relation(fields: [authId], references: [id])
+  authId Int?      @unique()
+
+  //
+  firstName  String?
+  lastName   String?
+  email      String?
+  phone      String?
+  address    String?
+  bloodGroup String?
+  birthDate  DateTime?
+  gender     String?
+  image      String?
+  //
+  schoolId   Int?
+  school     School?   @relation(fields: [schoolId], references: [id])
+  student    Student[]
+}
+
+model Subject {
+  id       Int       @id @default(autoincrement())
+  name     String
+  schoolId Int?
+  school   School?   @relation(fields: [schoolId], references: [id])
+  Teacher  Teacher[]
+  Lesson   Lesson[]
+}
+
+model Class {
+  id           Int          @id @default(autoincrement())
+  name         String
+  capacity     Int?
+  supervisorId Int?
+  supervisor   Teacher?     @relation(fields: [supervisorId], references: [id])
+  schoolId     Int?
+  school       School?      @relation(fields: [schoolId], references: [id])
+  Lesson       Lesson[]
+  Attendence   Attendence[]
+}
+
+model Lesson {
+  id        Int      @id @default(autoincrement())
+  name      String
+  subjectId Int?
+  subject   Subject? @relation(fields: [subjectId], references: [id])
+  classId   Int?
+  class     Class?   @relation(fields: [classId], references: [id])
+  teacherId Int?
+  teacher   Teacher? @relation(fields: [teacherId], references: [id])
+  schoolId  Int?
+  school    School?  @relation(fields: [schoolId], references: [id])
+}
+
+model Attendence {
+  id        Int              @id @default(autoincrement())
+  inTime    DateTime?
+  status    AttendenceStatus
+  studentId Int?
+  student   Student?         @relation(fields: [studentId], references: [id])
+  classId   Int?
+  class     Class?           @relation(fields: [classId], references: [id])
+  schoolId  Int?
+  school    School?          @relation(fields: [schoolId], references: [id])
+}
+
+enum AttendenceStatus {
+  Present
+  Absent
+  Late
+}
+
+model Fee {
+  id          Int            @id @default(autoincrement())
+  amount      Float?
+  totalAmount Float?
+  paidAmount  Float?
+  details     String?
+  status      PaymentStatus?
+  date        DateTime?
+  schoolId    Int?
+  school      School?        @relation(fields: [schoolId], references: [id])
+  studentId   Int?
+  student     Student?       @relation(fields: [studentId], references: [id])
+}
+
+model Expense {
+  id          Int            @id @default(autoincrement())
+  amount      Float?
+  totalAmount Float?
+  paidAmount  Float?
+  details     String?
+  status      PaymentStatus?
+  date        DateTime?
+  schoolId    Int?
+  school      School?        @relation(fields: [schoolId], references: [id])
+}
+
+enum PaymentStatus {
+  Paid
+  Unpaid
+  PartiallyPaid
+}
+
+model Accounts {
+  id       Int     @id @default(autoincrement())
+  name     String
+  income   Float?
+  expense  Float?
+  balance  Float?
+  schoolId Int?
+  school   School? @relation(fields: [schoolId], references: [id])
+}

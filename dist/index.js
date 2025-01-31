@@ -1,0 +1,48 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const dotenv_1 = __importDefault(require("dotenv"));
+const express_session_1 = __importDefault(require("express-session"));
+const connect_memcached_1 = __importDefault(require("connect-memcached"));
+const students_1 = require("./routes/students");
+const teachers_1 = require("./routes/teachers");
+const parents_1 = require("./routes/parents");
+const central_admin_1 = require("./routes/central_admin");
+const schools_1 = require("./routes/schools");
+const school_admin_1 = require("./routes/school_admin");
+const classes_1 = require("./routes/classes");
+const lessons_1 = require("./routes/lessons");
+const subjects_1 = require("./routes/subjects");
+const attendances_1 = require("./routes/attendances");
+const authentication_1 = require("./routes/authentication");
+const accounts_1 = require("./routes/accounts");
+const errorHandleMiddleware_1 = require("./util/errorHandleMiddleware");
+const sessionMiddleware_1 = require("./util/sessionMiddleware");
+dotenv_1.default.config();
+const port = process.env.PORT || 3001;
+const MemcachedStore = (0, connect_memcached_1.default)(express_session_1.default);
+const app = (0, express_1.default)();
+app.use(express_1.default.json());
+app.use(sessionMiddleware_1.sessionMiddleware);
+app.use('/api/students', students_1.studentRouter);
+app.use('/api/teachers', teachers_1.teacherRouter);
+app.use('/api/parents', parents_1.parentRouter);
+app.use('/api/central-admin', central_admin_1.centralAdminRouter);
+app.use('/api/schools', schools_1.schoolRouter);
+app.use('/api/school-admin', school_admin_1.schoolAdminRouter);
+app.use('/api/classes', classes_1.classRouter);
+app.use('/api/lessons', lessons_1.lessonRouter);
+app.use('/api/subjects', subjects_1.subjectRouter);
+app.use('/api/attendances', attendances_1.attendenceRouter);
+app.use('/api/authentication', authentication_1.authenticationRouter);
+app.use('/api/accounts', accounts_1.accountsRouter);
+app.get('/', (req, res) => {
+    res.send('You found the API!');
+});
+app.use(errorHandleMiddleware_1.errorHandleMiddleware);
+app.listen(port, () => {
+    console.log(`[server]: Server is running at http://localhost:${port}`);
+});
