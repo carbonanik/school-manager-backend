@@ -1,7 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
-import session from 'express-session';
-import connectMemcached from 'connect-memcached';
 
 import { studentRouter } from './routes/students';
 import { teacherRouter } from './routes/teachers';
@@ -15,15 +13,16 @@ import { subjectRouter } from './routes/subjects';
 import { attendenceRouter } from './routes/attendances';
 import { authenticationRouter } from './routes/authentication';
 import { accountsRouter } from './routes/accounts';
-import { HTTPError } from './util/errors';
 import { errorHandleMiddleware } from './util/errorHandleMiddleware';
 import { sessionMiddleware } from './util/sessionMiddleware';
+import cors from 'cors';
 
 dotenv.config();
 const port = process.env.PORT || 3001;
-const MemcachedStore = connectMemcached(session);
 
 const app = express();
+
+app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 
 app.use(express.json());
 

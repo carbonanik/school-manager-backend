@@ -10,13 +10,15 @@ const router = Router();
 
 
 router.post('/login', async (req: Request, res: Response, next: NextFunction) => {
+    console.log(req.body);
     try {
         const {
             username,
             password,
+            remember,
         } = req.body;
         var auth = await prisma.authInfo.findUnique({
-            where: { username },
+            where: { username }, 
             include: {
                 CentralAdmin: true,
                 SchoolAdmin: true,
