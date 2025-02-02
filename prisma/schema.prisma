@@ -40,7 +40,7 @@ model School {
   description    String?
   centralAdminId Int?
   centralAdmin   CentralAdmin? @relation(fields: [centralAdminId], references: [id])
-  school_admin   SchoolAdmin[]
+  schoolAdmin   SchoolAdmin[]
   teacher        Teacher[]
   student        Student[]
   Parent         Parent[]
@@ -60,7 +60,10 @@ model SchoolAdmin {
   authId Int      @unique()
 
   name    String?
+  address String?
+  phone   String?
   email   String?
+  image   String?
   schooId Int?
   school  School? @relation(fields: [schooId], references: [id])
 }

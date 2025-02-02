@@ -28,6 +28,7 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
             },
         });
 
+        console.log(auth);
         if (!auth) {
             throw new InvalidCredentialsError();
         }
