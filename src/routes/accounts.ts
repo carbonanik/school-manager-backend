@@ -16,6 +16,74 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     }
 });
 
+router.get('/analytics', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        isAuthenticated(req, [SCHOOL_ADMIN])
+        const schoolAdmin = await prisma.schoolAdmin.findUnique({
+            where: { id: req.session.user?.id! },
+            include: { school: true }
+        });
+        const accounts = await prisma.accounts.findMany({
+            where: { schoolId: schoolAdmin?.school[0]?.id }
+        });
+
+        const fees = await prisma.fee.findMany({
+            where: { schoolId: schoolAdmin?.school[0]?.id }
+        });
+
+
+        const expences = await prisma.expense.findMany({
+            where: { schoolId: schoolAdmin?.school[0]?.id }
+        });
+
+        const thisMonthIncome = fees.filter((fee) => {
+            const date = fee.date;
+            return date?.getMonth() === new Date().getMonth()
+                && date.getFullYear() === new Date().getFullYear();
+        }).reduce((total, fee) => {
+            return total + (fee.paidAmount || 0)
+        }, 0);
+
+        const thisMonthExpense = expences.filter((expence) => {
+            const date = expence.date;
+            return date?.getMonth() === new Date().getMonth()
+                && date.getFullYear() === new Date().getFullYear();
+        }).reduce((total, expence) => { return total + (expence.amount || 0) }, 0);
+
+        const todayIncome = fees.filter((fee) => {
+            const date = fee.date;
+            return date?.getDate() === new Date().getDate()
+                && date.getMonth() === new Date().getMonth()
+                && date.getFullYear() === new Date().getFullYear();
+        }).reduce((total, fee) => {
+            return total + (fee.paidAmount || 0)
+        }, 0);
+
+        const todayExpense = expences.filter((expence) => {
+            const date = expence.date;
+            return date?.getDate() === new Date().getDate()
+                && date.getMonth() === new Date().getMonth()
+                && date.getFullYear() === new Date().getFullYear();
+        }).reduce((total, expence) => {
+            return total + (expence.amount || 0)
+        }, 0);
+
+
+        res.json({
+            data: {
+                thisMonthIncome: thisMonthIncome,
+                thisMonthExpense: thisMonthExpense,
+                todayIncome: todayIncome,
+                todayExpense: todayExpense,
+                totalIncome: accounts[0].income,
+                totalExpense: accounts[0].expense,
+            }
+        });
+    } catch (error) {
+        next(error)
+    }
+});
+
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
 
