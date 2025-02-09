@@ -1,80 +1,85 @@
-// import express, { Request, Response } from 'express';
-// import multer from 'multer';
-// import { Client } from 'minio';
-// import path from 'path';
+import { NextFunction, Request, Response, Router } from 'express';
+import multer from 'multer';
+import { Client } from 'minio';
+import path from 'path';
+import { HTTPError } from '../util/errors';
 
-// // Initialize Express app
-// const app = express();
-// const PORT = process.env.PORT || 3000;
 
-// // Set up Multer to store files in memory
-// const storage = multer.memoryStorage();
-// const upload = multer({ storage });
+const router = Router();
 
-// // Configure your Minio client
-// const minioClient = new Client({
-//   endPoint: 'YOUR_MINIO_ENDPOINT', // e.g., 'localhost'
-//   port: 9000,                      // update if needed
-//   useSSL: false,                   // set to true if using SSL
-//   accessKey: 'YOUR_ACCESS_KEY',
-//   secretKey: 'YOUR_SECRET_KEY'
-// });
+// Set up Multer to store files in memory
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
-// // Define the bucket name where files will be stored
-// const bucketName = 'profile-pictures';
+const minioClient = new Client({
+    endPoint: process.env.MINIO_ENDPOINT || 'localhost',
+    port: Number(process.env.MINIO_PORT) || 9000,
+    useSSL: false,
+    accessKey: process.env.MINIO_ACCESS_KEY,
+    secretKey: process.env.MINIO_SECRET_KEY
+});
 
-// // Ensure the bucket exists (create it if it does not)
-// minioClient.bucketExists(bucketName, (err, exists) => {
-//   if (err) {
-//     console.error('Error checking bucket existence:', err);
-//   } else if (!exists) {
-//     minioClient.makeBucket(bucketName, 'us-east-1', (err) => {
-//       if (err) {
-//         return console.error('Error creating bucket:', err);
-//       }
-//       console.log(`Bucket "${bucketName}" created successfully.`);
-//     });
-//   } else {
-//     console.log(`Bucket "${bucketName}" already exists.`);
-//   }
-// });
+const bucketName = 'profile-pictures';
 
-// // Create the file upload endpoint
-// app.post('/upload', upload.single('profilePic'), (req: Request, res: Response) => {
-//   if (!req.file) {
-//     return res.status(400).json({ error: 'No file uploaded' });
-//   }
+// Ensure the bucket exists (create it if it does not)
+minioClient.bucketExists(bucketName).then(
+    async (exists) => {
+        if (!exists) {
+            await minioClient.makeBucket(bucketName);
+        } else {
+            console.log(`Bucket "${bucketName}" already exists.`);
+        }
+    }
+);
 
-//   // Create a unique filename (you can customize this as needed)
-//   const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-//   const ext = path.extname(req.file.originalname);
-//   const fileName = uniqueSuffix + ext;
+const checkForFileSize = false;
 
-//   // Upload the file buffer to Minio
-//   minioClient.putObject(bucketName, fileName, req.file.buffer, req.file.size, (err, etag) => {
-//     if (err) {
-//       console.error('Error uploading file to Minio:', err);
-//       return res.status(500).json({ error: 'Error uploading file' });
-//     }
-//     res.json({
-//       message: 'File uploaded successfully to Minio',
-//       fileName,
-//       etag,
-//     });
-//   });
-// });
+router.post('/upload', upload.single('fileUpload'), async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        if (!req.file) {
+            throw new HTTPError('No file uploaded', 400);
+        }
+        // send error if file size is greater than 1MB
+        if (checkForFileSize && req.file.size > 1000000) {
+            throw new HTTPError('File size must be less than 1MB', 400);
+        }
 
-// // (Optional) Serve a simple HTML form for testing purposes
-// app.get('/', (req: Request, res: Response) => {
-//   res.send(`
-//     <h2>Upload a Profile Picture</h2>
-//     <form action="/upload" method="post" enctype="multipart/form-data">
-//       <input type="file" name="profilePic" accept="image/*" required />
-//       <button type="submit">Upload</button>
-//     </form>
-//   `);
-// });
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+        const ext = path.extname(req.file.originalname);
+        const fileName = uniqueSuffix + ext;
 
-// app.listen(PORT, () => {
-//   console.log(`Server is running on port ${PORT}`);
-// });
+        await minioClient.putObject(bucketName, fileName, req.file.buffer, req.file.size, {
+            'Content-Type': req.file.mimetype
+        });
+
+        // const objectUrl = await minioClient.presignedGetObject(bucketName, fileName);
+
+        res.json({ message: 'File uploaded successfully', fileName });
+    } catch (error) {
+        next(error)
+    }
+});
+
+router.get('/download/:fileName', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { fileName } = req.params;
+        const objectUrl = await minioClient.presignedGetObject(bucketName, fileName);
+        res.json({ objectUrl });
+    } catch (error) {
+        next(error)
+    }
+})
+
+// Serve a simple HTML form for testing purposes
+router.get('/', (req: Request, res: Response) => {
+    res.send(`
+    <h2>Upload a Profile Picture</h2>
+    <form action="/api/file/upload" method="post" enctype="multipart/form-data">
+      <input type="file" name="fileUpload" accept="image/*" required />
+      <button type="submit">Upload</button>
+    </form>
+  `);
+});
+
+
+export default router;

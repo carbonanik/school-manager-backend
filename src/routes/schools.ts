@@ -8,10 +8,13 @@ const router = Router();
 
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
-
         isAuthenticated(req)
-        const schools = await prisma.school.findMany();
-        res.json(schools);
+        const schools = await prisma.school.findMany({
+            include: {
+                schoolAdmin: true
+            }
+        });
+        res.json({ data: schools });
     } catch (error) {
         next(error)
     }
@@ -101,7 +104,6 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
 
 router.post('/with-admin', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        console.log(req.body);
         isAuthenticated(req, [CENTRAL_ADMIN])
         const {
             // school
@@ -156,7 +158,7 @@ router.post('/with-admin', async (req: Request, res: Response, next: NextFunctio
                 auth: {
                     create: {
                         username: admin_username || admin_email,
-                        password: hashPassword, 
+                        password: hashPassword,
                     }
                 }
             }

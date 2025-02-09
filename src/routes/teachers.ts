@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from "express";
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient, Teacher } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { isAuthenticated, SCHOOL_ADMIN, TEACHER } from "../util/auth";
 
@@ -10,7 +10,47 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
         isAuthenticated(req)
         const teachers = await prisma.teacher.findMany();
-        res.json(teachers);
+        res.json({ data: teachers });
+    } catch (error) {
+        next(error)
+    }
+});
+
+router.get('/by-school', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        isAuthenticated(req, [SCHOOL_ADMIN])
+        const schoolAdmin = await prisma.schoolAdmin.findUnique({
+            where: { id: req.session.user?.id! },
+            include: {
+                school: true
+            }
+        });
+
+
+        if (schoolAdmin!.school?.length < 0) {
+            throw new Error('School not found');
+        }
+        const teachers = await prisma.teacher.findMany({
+            where: {
+                schoolId: schoolAdmin!.school[0].id
+            },
+        });
+        res.json({ data: teachers });
+    } catch (error) {
+        next(error)
+    }
+});
+
+router.get('/by-school/:id', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        isAuthenticated(req)
+        const { id } = req.params;
+        const teachers = await prisma.teacher.findMany({
+            where: {
+                schoolId: parseInt(id)
+            }
+        });
+        res.json({ data: teachers });
     } catch (error) {
         next(error)
     }
@@ -30,18 +70,35 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
             bloodGroup,
             birthDate,
             gender,
+            image,
         } = req.body;
 
-        var data = {
+        var data: Prisma.TeacherCreateInput = {
             email,
             firstName,
             lastName,
             phone,
             address,
             bloodGroup,
-            birthDate,
+            birthDate: new Date(birthDate),
             gender,
+            image,
             auth: {}
+        }
+
+        const schoolAdmin = await prisma.schoolAdmin.findUnique({
+            where: { id: req.session.user?.id! },
+            include: {
+                school: true
+            }
+        });
+
+        if (schoolAdmin?.school[0]) {
+            data.school = {
+                connect: {
+                    id: schoolAdmin.school[0].id
+                }
+            }
         }
 
         var hashPassword = password ? bcrypt.hashSync(password, 10) : undefined;
@@ -55,7 +112,9 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
             }
         }
 
-        const teacher = await prisma.teacher.create({ data });
+        const teacher = await prisma.teacher.create({
+            data
+        });
         res.json(teacher);
     } catch (error) {
         next(error)

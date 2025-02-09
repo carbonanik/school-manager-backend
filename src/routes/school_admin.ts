@@ -33,7 +33,11 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
             data: {
                 email,
                 name,
-                schooId,
+                school: {
+                    connect: {
+                        id: parseInt(schooId)
+                    }
+                },
                 auth: {
                     create: {
                         username: username || email,
@@ -85,7 +89,11 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
             data: {
                 email,
                 name,
-                schooId,
+                school: {
+                    connect: {
+                        id: parseInt(schooId)
+                    }
+                },
                 auth: {
                     update: {
                         username,

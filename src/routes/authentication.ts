@@ -10,15 +10,15 @@ const router = Router();
 
 
 router.post('/login', async (req: Request, res: Response, next: NextFunction) => {
-    console.log(req.body);
     try {
         const {
             username,
             password,
             remember,
         } = req.body;
+
         var auth = await prisma.authInfo.findUnique({
-            where: { username }, 
+            where: { username },
             include: {
                 CentralAdmin: true,
                 SchoolAdmin: true,
@@ -28,13 +28,16 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
             },
         });
 
-        console.log(auth);
         if (!auth) {
             throw new InvalidCredentialsError();
         }
 
         if (!bcrypt.compareSync(password, auth.password)) {
             throw new InvalidCredentialsError();
+        }
+
+        if (remember) {
+            req.session.cookie.maxAge = 1000 * 60 * 60 * 24 * 7; // 7 days in milliseconds
         }
 
         var userId;
@@ -66,6 +69,7 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
             username: auth!.username,
             role: userRole,
         };
+        req.session.save();
         res.json({ message: 'Login successful', user: req.session.user });
 
     } catch (error) {
@@ -91,6 +95,12 @@ router.get('/logout', (req: Request, res: Response, next: NextFunction) => {
                 console.error(err);
                 throw new HTTPError('Logout failed', 500);
             }
+            res.clearCookie("connect.sid", {
+                path: "/",
+                httpOnly: true,
+                secure: false, // Set to true in production (if using HTTPS)
+                sameSite: "lax",
+            });
             res.json({ message: 'Logout successful' });
         });
 

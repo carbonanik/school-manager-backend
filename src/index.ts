@@ -13,8 +13,12 @@ import { subjectRouter } from './routes/subjects';
 import { attendenceRouter } from './routes/attendances';
 import { authenticationRouter } from './routes/authentication';
 import { accountsRouter } from './routes/accounts';
+import { feeRouter } from './routes/fees';
+import { expenseRouter } from './routes/expences';
 import { errorHandleMiddleware } from './util/errorHandleMiddleware';
 import { sessionMiddleware } from './util/sessionMiddleware';
+import fileRouter from './routes/file';
+import pdfTempRouter from './routes/pdf-temp';
 import cors from 'cors';
 
 dotenv.config();
@@ -25,6 +29,8 @@ const app = express();
 app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 
 app.use(express.json());
+
+app.set("view engine", "ejs");
 
 app.use(sessionMiddleware);
 
@@ -39,7 +45,11 @@ app.use('/api/lessons', lessonRouter);
 app.use('/api/subjects', subjectRouter);
 app.use('/api/attendances', attendenceRouter);
 app.use('/api/authentication', authenticationRouter);
+app.use('/api/fees', feeRouter);
+app.use('/api/expenses', expenseRouter);
 app.use('/api/accounts', accountsRouter);
+app.use('/api/file', fileRouter);
+app.use('/api/pdf-temp', pdfTempRouter);
 
 // Define User Type
 interface User {

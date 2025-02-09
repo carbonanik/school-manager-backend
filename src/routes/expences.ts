@@ -9,11 +9,34 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
         isAuthenticated(req)
         const expences = await prisma.expense.findMany();
-        res.json(expences);
+        res.json({ data: expences });
     } catch (error) {
         next(error)
     }
 });
+
+router.get('/by-school', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        isAuthenticated(req, [SCHOOL_ADMIN])
+        const schoolAdmin = await prisma.schoolAdmin.findUnique({
+            where: { id: req.session.user?.id! },
+            include: {
+                school: true
+            }
+        })
+        const expences = await prisma.expense.findMany(
+            {
+                where: {
+                    schoolId: schoolAdmin?.school[0]?.id
+                }
+            }
+        );
+        res.json({ data: expences });
+    } catch (error) {
+        next(error)
+    }
+});
+
 
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -21,8 +44,6 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
         isAuthenticated(req, [SCHOOL_ADMIN])
         const {
             amount,
-            totalAmount,
-            paidAmount,
             details,
             status,
             date,
@@ -32,8 +53,6 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
         const expense = await prisma.expense.create({
             data: {
                 amount,
-                totalAmount,
-                paidAmount,
                 details,
                 status,
                 date,
@@ -41,6 +60,80 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
             }
         });
         res.json(expense);
+
+    } catch (error) {
+        next(error)
+    }
+});
+
+
+router.post('/with-calclution', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+
+        isAuthenticated(req, [SCHOOL_ADMIN]);
+        const {
+            amount,
+            details,
+            date,
+        } = req.body;
+
+        const schoolAdmin = await prisma.schoolAdmin.findUnique({
+            where: { id: req.session.user?.id! },
+            include: {
+                school: true
+            }
+        });
+
+        const defaultSchoolId = schoolAdmin?.school[0].id
+
+
+        await prisma.$transaction(async (tx) => {
+            const expense = await prisma.expense.create({
+                data: {
+                    amount,
+                    details,
+                    status: "Paid",
+                    date,
+                    school: {
+                        connect: {
+                            id: defaultSchoolId
+                        }
+                    }
+                }
+            });
+
+            const accounts = await tx.accounts.findMany({
+                where: {
+                    schoolId: defaultSchoolId
+                }
+            });
+
+            if (accounts.length > 0) {
+                const account = accounts[0];
+                await tx.accounts.update({
+                    where: {
+                        id: account.id
+                    },
+                    data: {
+                        expense: (account.expense || 0) + (expense.amount || 0),
+                        balance: (account.balance || 0) - (expense.amount || 0)
+                    }
+                });
+                console.log("Account updated");
+            } else {
+                // Create a new default account
+                await tx.accounts.create({
+                    data: {
+                        name: "Default Account",
+                        expense: expense.amount,
+                        balance: -(expense.amount || 0),
+                    }
+                });
+                console.log("Default account created");
+            }
+        });
+
+        res.json({ message: 'Expense created successfully' });
 
     } catch (error) {
         next(error)
@@ -70,13 +163,10 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
         const { id } = req.params;
         const {
             amount,
-            totalAmount,
-            paidAmount,
             details,
             status,
             date,
             schoolId,
-            studentId,
         } = req.body;
 
         const expense = await prisma.expense.update({
@@ -85,8 +175,6 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
             },
             data: {
                 amount,
-                totalAmount,
-                paidAmount,
                 details,
                 status,
                 date,

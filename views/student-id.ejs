@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student ID Card</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        .id-card {
+            width: 300px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+        .id-card img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+            border: 2px solid #007bff;
+        }
+        .id-card h2 {
+            margin: 10px 0 5px;
+            color: #333;
+        }
+        .id-card p {
+            margin: 5px 0;
+            color: #555;
+            font-size: 14px;
+        }
+        .id-card .barcode {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="id-card">
+        <img src="<%= student.photo %>" alt="Student Photo">
+        <h2><%= student.name %></h2>
+        <p><strong>ID:</strong> <%= student.id %></p>
+        <p><strong>Course:</strong> <%= student.course %></p>
+        <p><strong>Year:</strong> <%= student.year %></p>
+        <p><strong>Institute:</strong> <%= student.institute %></p>
+        <div class="barcode">
+            <img src="<%= student.barcode %>" alt="Barcode">
+        </div>
+    </div>
+</body>
+</html>

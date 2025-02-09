@@ -40,7 +40,7 @@ model School {
   description    String?
   centralAdminId Int?
   centralAdmin   CentralAdmin? @relation(fields: [centralAdminId], references: [id])
-  schoolAdmin   SchoolAdmin[]
+  schoolAdmin    SchoolAdmin[]
   teacher        Teacher[]
   student        Student[]
   Parent         Parent[]
@@ -64,8 +64,7 @@ model SchoolAdmin {
   phone   String?
   email   String?
   image   String?
-  schooId Int?
-  school  School? @relation(fields: [schooId], references: [id])
+  school  School[]
 }
 
 model Teacher {
@@ -191,24 +190,22 @@ enum AttendenceStatus {
 }
 
 model Fee {
-  id          Int            @id @default(autoincrement())
-  amount      Float?
-  totalAmount Float?
-  paidAmount  Float?
-  details     String?
-  status      PaymentStatus?
-  date        DateTime?
-  schoolId    Int?
-  school      School?        @relation(fields: [schoolId], references: [id])
-  studentId   Int?
-  student     Student?       @relation(fields: [studentId], references: [id])
+  id             Int            @id @default(autoincrement())
+  totalAmount    Float?
+  discountAmount Float?
+  paidAmount     Float?
+  details        String?
+  status         PaymentStatus?
+  date           DateTime?
+  schoolId       Int?
+  school         School?        @relation(fields: [schoolId], references: [id])
+  studentId      Int?
+  student        Student?       @relation(fields: [studentId], references: [id])
 }
 
 model Expense {
   id          Int            @id @default(autoincrement())
   amount      Float?
-  totalAmount Float?
-  paidAmount  Float?
   details     String?
   status      PaymentStatus?
   date        DateTime?
