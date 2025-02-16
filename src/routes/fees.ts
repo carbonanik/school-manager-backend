@@ -137,6 +137,7 @@ router.post('/with-calclution', async (req: Request, res: Response, next: NextFu
                         name: "Default Account",
                         income: fee.paidAmount,
                         balance: fee.paidAmount,
+                        defaultAccount: true,
                         school: {
                             connect: {
                                 id: defaultSchoolId

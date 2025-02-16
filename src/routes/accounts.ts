@@ -8,7 +8,7 @@ const router = Router();
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
         isAuthenticated(req, [SCHOOL_ADMIN])
-        const accounts = await prisma.accounts.findMany();
+        const accounts = await prisma.accounts.findMany(); 
         res.json(accounts);
 
     } catch (error) {

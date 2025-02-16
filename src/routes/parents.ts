@@ -34,6 +34,9 @@ router.get('/by-school', async (req: Request, res: Response, next: NextFunction)
             where: {
                 schoolId: schoolAdmin!.school[0].id
             },
+            include: {
+                // students : true
+            }
         });
         res.json({ data: parents });
     } catch (error) {
@@ -65,8 +68,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
             username,
             password,
             email,
-            firstName,
-            lastName,
+            name,
             phone,
             address,
             bloodGroup,
@@ -77,14 +79,14 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
 
         var data: Prisma.ParentCreateInput = {
             email,
-            firstName,
-            lastName,
+            name,
             phone,
             address,
             bloodGroup,
             birthDate,
             gender,
-            auth: {}
+            auth: {},
+            school: {}
         }
 
         var hashPassword = password ? bcrypt.hashSync(password, 10) : undefined;
@@ -115,8 +117,7 @@ router.post('/with-school', async (req: Request, res: Response, next: NextFuncti
             username,
             password,
             email,
-            firstName,
-            lastName,
+            name,
             phone,
             address,
             bloodGroup,
@@ -127,14 +128,14 @@ router.post('/with-school', async (req: Request, res: Response, next: NextFuncti
         // construct create input
         var data: Prisma.ParentCreateInput = {
             email,
-            firstName,
-            lastName,
+            name,
             phone,
             address,
             bloodGroup,
             birthDate,
             gender,
-            auth: {}
+            auth: {},
+            school: {}
         }
 
         // connect school
@@ -182,8 +183,7 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
             username,
             password,
             email,
-            firstName,
-            lastName,
+            name,
             phone,
             address,
             bloodGroup,
@@ -197,8 +197,7 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
             },
             data: {
                 email,
-                firstName,
-                lastName,
+                name,
                 phone,
                 address,
                 bloodGroup,

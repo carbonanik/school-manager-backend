@@ -34,6 +34,10 @@ router.get('/by-school', async (req: Request, res: Response, next: NextFunction)
             where: {
                 schoolId: schoolAdmin!.school[0].id
             },
+            include: {
+                subjects: true,
+                classes: true,
+            }
         });
         res.json({ data: teachers });
     } catch (error) {
@@ -63,27 +67,28 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
             username,
             password,
             email,
-            firstName,
-            lastName,
+            name,
             phone,
             address,
             bloodGroup,
             birthDate,
             gender,
             image,
+            classesId,
+            subjectsId,
         } = req.body;
 
         var data: Prisma.TeacherCreateInput = {
             email,
-            firstName,
-            lastName,
+            name,
             phone,
             address,
             bloodGroup,
             birthDate: new Date(birthDate),
             gender,
             image,
-            auth: {}
+            auth: {},
+            school: {}
         }
 
         const schoolAdmin = await prisma.schoolAdmin.findUnique({
@@ -112,10 +117,33 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
             }
         }
 
+        if (classesId && classesId.length > 0) {
+            data.classes = {
+                connect: classesId.map((id: number) => {
+                    return {
+                        id
+                    }
+                })
+            }
+        }
+
+        if (subjectsId && subjectsId.length > 0) {
+            data.subjects = {
+                connect: subjectsId.map((id: number) => {
+                    return {
+                        id
+                    }
+                })
+            }
+        }
+
         const teacher = await prisma.teacher.create({
             data
         });
-        res.json(teacher);
+        res.json({
+            massage: 'Teacher created successfully',
+            data: teacher
+        });
     } catch (error) {
         next(error)
     }
@@ -144,8 +172,7 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
             username,
             password,
             email,
-            firstName,
-            lastName,
+            name,
             phone,
             address,
             bloodGroup,
@@ -159,8 +186,7 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
             },
             data: {
                 email,
-                firstName,
-                lastName,
+                name,
                 phone,
                 address,
                 bloodGroup,

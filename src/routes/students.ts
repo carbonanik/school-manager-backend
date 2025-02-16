@@ -9,8 +9,8 @@ const router = Router();
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
         isAuthenticated(req)
-        const studenst = await prisma.student.findMany();
-        res.json(studenst);
+        const studensts = await prisma.student.findMany();
+        res.json({ data: studensts });
     } catch (error) {
         next(error)
     }
@@ -33,12 +33,49 @@ router.get('/by-school', async (req: Request, res: Response, next: NextFunction)
             where: {
                 schoolId: schoolAdmin!.school[0].id
             },
+            include: {
+                class: true,
+            }
         });
         res.json({ data: students });
     } catch (error) {
         next(error)
     }
 });
+
+router.get('/by-class/:id', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        isAuthenticated(req, [SCHOOL_ADMIN])
+        const { id } = req.params;
+
+        const where: Prisma.StudentWhereInput = {}
+
+        if (id) {
+            where.classId = parseInt(id)
+        }
+
+        const schoolAdmin = await prisma.schoolAdmin.findUnique({
+            where: { id: req.session.user?.id! },
+            include: {
+                school: true
+            }
+        });
+
+        if (schoolAdmin!.school?.length < 0) {
+            throw new Error('School not found');
+        }
+
+        where.schoolId = schoolAdmin!.school[0].id
+
+        const students = await prisma.student.findMany({
+            where,
+        });
+
+        res.json({ data: students });
+    } catch (error) {
+        next(error)
+    }
+})
 
 router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -55,55 +92,54 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     }
 });
 
+// router.post('/', async (req: Request, res: Response, next: NextFunction) => {
+//     try {
 
-router.post('/', async (req: Request, res: Response, next: NextFunction) => {
-    try {
+//         isAuthenticated(req, [SCHOOL_ADMIN])
+//         const {
+//             username,
+//             password,
+//             email,
+//             firstName,
+//             lastName,
+//             phone,
+//             address,
+//             bloodGroup,
+//             birthDate,
+//             gender,
+//         } = req.body;
 
-        isAuthenticated(req, [SCHOOL_ADMIN])
-        const {
-            username,
-            password,
-            email,
-            firstName,
-            lastName,
-            phone,
-            address,
-            bloodGroup,
-            birthDate,
-            gender,
-        } = req.body;
+//         var data: Prisma.StudentCreateInput = {
+//             email,
+//             firstName,
+//             lastName,
+//             phone,
+//             address,
+//             bloodGroup,
+//             birthDate,
+//             gender,
+//             auth: {}
+//         }
 
-        var data: Prisma.StudentCreateInput = {
-            email,
-            firstName,
-            lastName,
-            phone,
-            address,
-            bloodGroup,
-            birthDate,
-            gender,
-            auth: {}
-        }
+//         var hashPassword = password ? bcrypt.hashSync(password, 10) : undefined;
 
-        var hashPassword = password ? bcrypt.hashSync(password, 10) : undefined;
+//         if (hashPassword && username) {
+//             data.auth = {
+//                 create: { 
+//                     username,
+//                     password: hashPassword
+//                 }
+//             }
+//         }
 
-        if (hashPassword && username) {
-            data.auth = {
-                create: { 
-                    username,
-                    password: hashPassword
-                }
-            }
-        }
-
-        const student = await prisma.student.create({
-            data
-        });
-        res.json(student);
-    } catch (error) {
-        next(error)
-    }
-});
+//         const student = await prisma.student.create({
+//             data
+//         });
+//         res.json(student);
+//     } catch (error) {
+//         next(error)
+//     }
+// });
 
 router.post('/with-school', async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -113,25 +149,42 @@ router.post('/with-school', async (req: Request, res: Response, next: NextFuncti
             username,
             password,
             email,
-            firstName,
-            lastName,
+            name,
             phone,
             address,
             bloodGroup,
             birthDate,
             gender,
+            classId,
+            parentId,
         } = req.body;
 
         var data: Prisma.StudentCreateInput = {
             email,
-            firstName,
-            lastName,
+            name,
             phone,
             address,
             bloodGroup,
             birthDate,
             gender,
-            auth: {}
+            auth: {},
+            school: {}
+        }
+
+        if (classId) {
+            data.class = {
+                connect: {
+                    id: classId
+                }
+            }
+        }
+
+        if (parentId) {
+            data.parent = {
+                connect: {
+                    id: parentId
+                }
+            }
         }
 
         const schoolAdmin = await prisma.schoolAdmin.findUnique({
@@ -179,8 +232,7 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
             username,
             password,
             email,
-            firstName,
-            lastName,
+            name,
             phone,
             address,
             bloodGroup,
@@ -194,8 +246,7 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
             },
             data: {
                 email,
-                firstName,
-                lastName,
+                name,
                 phone,
                 address,
                 bloodGroup,

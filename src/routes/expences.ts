@@ -108,6 +108,9 @@ router.post('/with-calclution', async (req: Request, res: Response, next: NextFu
                 }
             });
 
+            // find the account where defaultAccount is true
+            // const defaultAccount = accounts.find(account => account.defaultAccount);
+
             if (accounts.length > 0) {
                 const account = accounts[0];
                 await tx.accounts.update({
@@ -127,6 +130,12 @@ router.post('/with-calclution', async (req: Request, res: Response, next: NextFu
                         name: "Default Account",
                         expense: expense.amount,
                         balance: -(expense.amount || 0),
+                        defaultAccount: true,
+                        school: {
+                            connect: {
+                                id: defaultSchoolId
+                            }
+                        }
                     }
                 });
                 console.log("Default account created");

@@ -17,17 +17,23 @@ model AuthInfo {
   Teacher      Teacher?
   Student      Student?
   Parent       Parent?
+  //
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 }
 
 model CentralAdmin {
-  id Int @id @default(autoincrement())
-
-  auth   AuthInfo @relation(fields: [authId], references: [id])
-  authId Int      @unique()
-
-  email  String?
-  name   String?
-  school School[]
+  id        Int      @id @default(autoincrement())
+  //
+  auth      AuthInfo @relation(fields: [authId], references: [id])
+  authId    Int      @unique()
+  //
+  email     String?
+  name      String?
+  school    School[]
+  //
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model School {
@@ -51,6 +57,9 @@ model School {
   Fee            Fee[]
   Expense        Expense[]
   Accounts       Accounts[]
+  //
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 }
 
 model SchoolAdmin {
@@ -59,22 +68,24 @@ model SchoolAdmin {
   auth   AuthInfo @relation(fields: [authId], references: [id])
   authId Int      @unique()
 
-  name    String?
-  address String?
-  phone   String?
-  email   String?
-  image   String?
-  school  School[]
+  name      String?
+  address   String?
+  phone     String?
+  email     String?
+  image     String?
+  school    School[]
+  //
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Teacher {
-  id Int @id @default(autoincrement())
-
-  auth   AuthInfo? @relation(fields: [authId], references: [id])
-  authId Int?      @unique()
-
-  firstName  String?
-  lastName   String?
+  id         Int       @id @default(autoincrement())
+  //
+  auth       AuthInfo? @relation(fields: [authId], references: [id])
+  authId     Int?      @unique()
+  //
+  name       String
   email      String?
   phone      String?
   address    String?
@@ -83,26 +94,24 @@ model Teacher {
   gender     String?
   image      String?
   //
-  schoolId   Int?
-  school     School?   @relation(fields: [schoolId], references: [id])
-  Subject    Subject[]
-  Class      Class[]
-  Lesson     Lesson[]
+  schoolId   Int
+  school     School    @relation(fields: [schoolId], references: [id])
+  subjects   Subject[]
+  classes    Class[]
+  lessons    Lesson[]
+  //
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 }
 
 model Student {
-  id Int @id @default(autoincrement())
-
+  id     Int       @id @default(autoincrement())
+  //
   auth   AuthInfo? @relation(fields: [authId], references: [id])
   authId Int?      @unique()
 
-  parentId   Int?
-  parent     Parent?      @relation(fields: [parentId], references: [id])
-  schoolId   Int?
-  school     School?      @relation(fields: [schoolId], references: [id])
   //
-  firstName  String?
-  lastName   String?
+  name       String
   email      String?
   phone      String?
   address    String?
@@ -111,19 +120,27 @@ model Student {
   gender     String?
   image      String?
   //
-  Attendence Attendence[]
-  Fee        Fee[]
+  parentId   Int?
+  parent     Parent?      @relation(fields: [parentId], references: [id])
+  classId    Int?
+  class      Class?       @relation(fields: [classId], references: [id])
+  schoolId   Int
+  school     School       @relation(fields: [schoolId], references: [id])
+  //
+  attendence Attendence[]
+  fee        Fee[]
+  //
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
 }
 
 model Parent {
-  id Int @id @default(autoincrement())
-
-  auth   AuthInfo? @relation(fields: [authId], references: [id])
-  authId Int?      @unique()
-
+  id         Int       @id @default(autoincrement())
   //
-  firstName  String?
-  lastName   String?
+  auth       AuthInfo? @relation(fields: [authId], references: [id])
+  authId     Int?      @unique()
+  //
+  name       String
   email      String?
   phone      String?
   address    String?
@@ -132,18 +149,24 @@ model Parent {
   gender     String?
   image      String?
   //
-  schoolId   Int?
-  school     School?   @relation(fields: [schoolId], references: [id])
-  student    Student[]
+  schoolId   Int
+  school     School    @relation(fields: [schoolId], references: [id])
+  students   Student[]
+  //
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 }
 
 model Subject {
-  id       Int       @id @default(autoincrement())
-  name     String
-  schoolId Int?
-  school   School?   @relation(fields: [schoolId], references: [id])
-  Teacher  Teacher[]
-  Lesson   Lesson[]
+  id        Int       @id @default(autoincrement())
+  name      String
+  schoolId  Int?
+  school    School?   @relation(fields: [schoolId], references: [id])
+  Teacher   Teacher[]
+  Lesson    Lesson[]
+  //
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model Class {
@@ -156,6 +179,10 @@ model Class {
   school       School?      @relation(fields: [schoolId], references: [id])
   Lesson       Lesson[]
   Attendence   Attendence[]
+  Student      Student[]
+  //
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 }
 
 model Lesson {
@@ -169,6 +196,9 @@ model Lesson {
   teacher   Teacher? @relation(fields: [teacherId], references: [id])
   schoolId  Int?
   school    School?  @relation(fields: [schoolId], references: [id])
+  //
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Attendence {
@@ -181,6 +211,9 @@ model Attendence {
   class     Class?           @relation(fields: [classId], references: [id])
   schoolId  Int?
   school    School?          @relation(fields: [schoolId], references: [id])
+  //
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
 }
 
 enum AttendenceStatus {
@@ -201,16 +234,22 @@ model Fee {
   school         School?        @relation(fields: [schoolId], references: [id])
   studentId      Int?
   student        Student?       @relation(fields: [studentId], references: [id])
+  //
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 }
 
 model Expense {
-  id          Int            @id @default(autoincrement())
-  amount      Float?
-  details     String?
-  status      PaymentStatus?
-  date        DateTime?
-  schoolId    Int?
-  school      School?        @relation(fields: [schoolId], references: [id])
+  id        Int            @id @default(autoincrement())
+  amount    Float?
+  details   String?
+  status    PaymentStatus?
+  date      DateTime?
+  schoolId  Int?
+  school    School?        @relation(fields: [schoolId], references: [id])
+  //
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
 }
 
 enum PaymentStatus {
@@ -220,11 +259,15 @@ enum PaymentStatus {
 }
 
 model Accounts {
-  id       Int     @id @default(autoincrement())
-  name     String
-  income   Float?
-  expense  Float?
-  balance  Float?
-  schoolId Int?
-  school   School? @relation(fields: [schoolId], references: [id])
+  id             Int      @id @default(autoincrement())
+  name           String
+  income         Float?
+  expense        Float?
+  balance        Float?
+  defaultAccount Boolean? @default(false)
+  schoolId       Int?
+  school         School?  @relation(fields: [schoolId], references: [id])
+  //
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }

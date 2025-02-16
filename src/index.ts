@@ -19,6 +19,7 @@ import { errorHandleMiddleware } from './util/errorHandleMiddleware';
 import { sessionMiddleware } from './util/sessionMiddleware';
 import fileRouter from './routes/file';
 import pdfTempRouter from './routes/pdf-temp';
+import pdfGenerateRouter from './routes/pdf-generate';
 import cors from 'cors';
 
 dotenv.config();
@@ -50,6 +51,7 @@ app.use('/api/expenses', expenseRouter);
 app.use('/api/accounts', accountsRouter);
 app.use('/api/file', fileRouter);
 app.use('/api/pdf-temp', pdfTempRouter);
+app.use('/api/pdf-generate', pdfGenerateRouter);
 
 // Define User Type
 interface User {

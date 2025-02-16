@@ -11,9 +11,9 @@ router.get("/generate", async (req, res, next) => {
         try {
 
             const formData = new FormData();
-            formData.append('url', 'http://host.docker.internal:3001/api/pdf-temp/student-ids');
-            // formData.append('paperWidth', '2.12');
-            // formData.append('paperHeight', '3.37');
+            formData.append('url', 'http://host.docker.internal:3001/api/pdf-temp/student-id');
+            formData.append('paperWidth', '2.12');
+            formData.append('paperHeight', '3.37');
             formData.append('marginTop', '0');
             formData.append('marginBottom', '0');
             formData.append('marginLeft', '0');
@@ -60,8 +60,8 @@ router.get("/generate", async (req, res, next) => {
 });
 
 router.get("/student-id", async (req, res) => {
-    const photoUrl = "http://host.docker.internal:9000/profile-pictures/1738605534052-938705226.jpg";
-    const barcodeUrl = "http://host.docker.internal:9000/profile-pictures/1738606135379-45164871.png";
+    const photoUrl = "http://localhost:9000/profile-pictures/avatar.jpg";
+    const barcodeUrl = "http://localhost:9000/profile-pictures/avatar.jpg";
 
     // get the image and convert it to base64
     // const photoBase64 = await convertImageToBase64(photoUrl);
