@@ -12,10 +12,10 @@ RUN npm install
 # Copy the entire project
 COPY . .
 
-# Build the application
-RUN npm run build
 # Ensure Prisma Client is generated
 RUN npx prisma generate
+# Build the application
+RUN npm run build
 
 # Stage 2: Production Image
 FROM node:20-alpine
