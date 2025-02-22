@@ -39,7 +39,11 @@ router.post('/', (req, res, next) => __awaiter(void 0, void 0, void 0, function*
             data: {
                 email,
                 name,
-                schooId,
+                school: {
+                    connect: {
+                        id: parseInt(schooId)
+                    }
+                },
                 auth: {
                     create: {
                         username: username || email,
@@ -82,7 +86,11 @@ router.put('/:id', (req, res, next) => __awaiter(void 0, void 0, void 0, functio
             data: {
                 email,
                 name,
-                schooId,
+                school: {
+                    connect: {
+                        id: parseInt(schooId)
+                    }
+                },
                 auth: {
                     update: {
                         username,

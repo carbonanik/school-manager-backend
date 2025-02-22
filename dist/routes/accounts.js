@@ -26,6 +26,66 @@ router.get('/', (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
         next(error);
     }
 }));
+router.get('/analytics', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c, _d;
+    try {
+        (0, auth_1.isAuthenticated)(req, [auth_1.SCHOOL_ADMIN]);
+        const schoolAdmin = yield prisma.schoolAdmin.findUnique({
+            where: { id: (_a = req.session.user) === null || _a === void 0 ? void 0 : _a.id },
+            include: { school: true }
+        });
+        const accounts = yield prisma.accounts.findMany({
+            where: { schoolId: (_b = schoolAdmin === null || schoolAdmin === void 0 ? void 0 : schoolAdmin.school[0]) === null || _b === void 0 ? void 0 : _b.id }
+        });
+        const fees = yield prisma.fee.findMany({
+            where: { schoolId: (_c = schoolAdmin === null || schoolAdmin === void 0 ? void 0 : schoolAdmin.school[0]) === null || _c === void 0 ? void 0 : _c.id }
+        });
+        const expences = yield prisma.expense.findMany({
+            where: { schoolId: (_d = schoolAdmin === null || schoolAdmin === void 0 ? void 0 : schoolAdmin.school[0]) === null || _d === void 0 ? void 0 : _d.id }
+        });
+        const thisMonthIncome = fees.filter((fee) => {
+            const date = fee.date;
+            return (date === null || date === void 0 ? void 0 : date.getMonth()) === new Date().getMonth()
+                && date.getFullYear() === new Date().getFullYear();
+        }).reduce((total, fee) => {
+            return total + (fee.paidAmount || 0);
+        }, 0);
+        const thisMonthExpense = expences.filter((expence) => {
+            const date = expence.date;
+            return (date === null || date === void 0 ? void 0 : date.getMonth()) === new Date().getMonth()
+                && date.getFullYear() === new Date().getFullYear();
+        }).reduce((total, expence) => { return total + (expence.amount || 0); }, 0);
+        const todayIncome = fees.filter((fee) => {
+            const date = fee.date;
+            return (date === null || date === void 0 ? void 0 : date.getDate()) === new Date().getDate()
+                && date.getMonth() === new Date().getMonth()
+                && date.getFullYear() === new Date().getFullYear();
+        }).reduce((total, fee) => {
+            return total + (fee.paidAmount || 0);
+        }, 0);
+        const todayExpense = expences.filter((expence) => {
+            const date = expence.date;
+            return (date === null || date === void 0 ? void 0 : date.getDate()) === new Date().getDate()
+                && date.getMonth() === new Date().getMonth()
+                && date.getFullYear() === new Date().getFullYear();
+        }).reduce((total, expence) => {
+            return total + (expence.amount || 0);
+        }, 0);
+        res.json({
+            data: {
+                thisMonthIncome: thisMonthIncome,
+                thisMonthExpense: thisMonthExpense,
+                todayIncome: todayIncome,
+                todayExpense: todayExpense,
+                totalIncome: accounts[0].income,
+                totalExpense: accounts[0].expense,
+            }
+        });
+    }
+    catch (error) {
+        next(error);
+    }
+}));
 router.post('/', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         (0, auth_1.isAuthenticated)(req, [auth_1.SCHOOL_ADMIN]);

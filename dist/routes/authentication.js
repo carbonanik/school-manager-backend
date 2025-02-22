@@ -23,7 +23,7 @@ const router = (0, express_1.Router)();
 exports.authenticationRouter = router;
 router.post('/login', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { username, password, } = req.body;
+        const { username, password, remember, } = req.body;
         var auth = yield prisma.authInfo.findUnique({
             where: { username },
             include: {
@@ -39,6 +39,9 @@ router.post('/login', (req, res, next) => __awaiter(void 0, void 0, void 0, func
         }
         if (!bcryptjs_1.default.compareSync(password, auth.password)) {
             throw new errors_1.InvalidCredentialsError();
+        }
+        if (remember) {
+            req.session.cookie.maxAge = 1000 * 60 * 60 * 24 * 7; // 7 days in milliseconds
         }
         var userId;
         var userRole;
@@ -70,12 +73,24 @@ router.post('/login', (req, res, next) => __awaiter(void 0, void 0, void 0, func
             username: auth.username,
             role: userRole,
         };
+        req.session.save();
         res.json({ message: 'Login successful', user: req.session.user });
     }
     catch (error) {
         next(error);
     }
 }));
+router.get('name', (req, res, next) => {
+    try {
+        if (!req.session.user) {
+            throw new errors_1.InvalidCredentialsError();
+        }
+        res.json({ message: 'Welcome', user: req.session.user });
+    }
+    catch (error) {
+        next(error);
+    }
+});
 router.get('/get-user', (req, res, next) => {
     try {
         if (!req.session.user) {
@@ -94,6 +109,12 @@ router.get('/logout', (req, res, next) => {
                 console.error(err);
                 throw new errors_1.HTTPError('Logout failed', 500);
             }
+            res.clearCookie("connect.sid", {
+                path: "/",
+                httpOnly: true,
+                secure: false, // Set to true in production (if using HTTPS)
+                sameSite: "lax",
+            });
             res.json({ message: 'Logout successful' });
         });
     }

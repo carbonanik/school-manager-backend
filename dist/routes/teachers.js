@@ -24,27 +24,85 @@ router.get('/', (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
     try {
         (0, auth_1.isAuthenticated)(req);
         const teachers = yield prisma.teacher.findMany();
-        res.json(teachers);
+        res.json({ data: teachers });
+    }
+    catch (error) {
+        next(error);
+    }
+}));
+router.get('/by-school', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    try {
+        (0, auth_1.isAuthenticated)(req, [auth_1.SCHOOL_ADMIN]);
+        const schoolAdmin = yield prisma.schoolAdmin.findUnique({
+            where: { id: (_a = req.session.user) === null || _a === void 0 ? void 0 : _a.id },
+            include: {
+                school: true
+            }
+        });
+        if (((_b = schoolAdmin.school) === null || _b === void 0 ? void 0 : _b.length) < 0) {
+            throw new Error('School not found');
+        }
+        const teachers = yield prisma.teacher.findMany({
+            where: {
+                schoolId: schoolAdmin.school[0].id
+            },
+            include: {
+                subjects: true,
+                classes: true,
+            }
+        });
+        res.json({ data: teachers });
+    }
+    catch (error) {
+        next(error);
+    }
+}));
+router.get('/by-school/:id', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        (0, auth_1.isAuthenticated)(req);
+        const { id } = req.params;
+        const teachers = yield prisma.teacher.findMany({
+            where: {
+                schoolId: parseInt(id)
+            }
+        });
+        res.json({ data: teachers });
     }
     catch (error) {
         next(error);
     }
 }));
 router.post('/', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
         (0, auth_1.isAuthenticated)(req, [auth_1.SCHOOL_ADMIN]);
-        const { username, password, email, firstName, lastName, phone, address, bloodGroup, birthDate, gender, } = req.body;
+        const { username, password, email, name, phone, address, bloodGroup, birthDate, gender, image, classesId, subjectsId, } = req.body;
         var data = {
             email,
-            firstName,
-            lastName,
+            name,
             phone,
             address,
             bloodGroup,
-            birthDate,
+            birthDate: new Date(birthDate),
             gender,
-            auth: {}
+            image,
+            auth: {},
+            school: {}
         };
+        const schoolAdmin = yield prisma.schoolAdmin.findUnique({
+            where: { id: (_a = req.session.user) === null || _a === void 0 ? void 0 : _a.id },
+            include: {
+                school: true
+            }
+        });
+        if (schoolAdmin === null || schoolAdmin === void 0 ? void 0 : schoolAdmin.school[0]) {
+            data.school = {
+                connect: {
+                    id: schoolAdmin.school[0].id
+                }
+            };
+        }
         var hashPassword = password ? bcryptjs_1.default.hashSync(password, 10) : undefined;
         if (hashPassword && username) {
             data.auth = {
@@ -54,8 +112,31 @@ router.post('/', (req, res, next) => __awaiter(void 0, void 0, void 0, function*
                 }
             };
         }
-        const teacher = yield prisma.teacher.create({ data });
-        res.json(teacher);
+        if (classesId && classesId.length > 0) {
+            data.classes = {
+                connect: classesId.map((id) => {
+                    return {
+                        id
+                    };
+                })
+            };
+        }
+        if (subjectsId && subjectsId.length > 0) {
+            data.subjects = {
+                connect: subjectsId.map((id) => {
+                    return {
+                        id
+                    };
+                })
+            };
+        }
+        const teacher = yield prisma.teacher.create({
+            data
+        });
+        res.json({
+            massage: 'Teacher created successfully',
+            data: teacher
+        });
     }
     catch (error) {
         next(error);
@@ -80,15 +161,14 @@ router.put('/:id', (req, res, next) => __awaiter(void 0, void 0, void 0, functio
     try {
         (0, auth_1.isAuthenticated)(req, [auth_1.TEACHER, auth_1.SCHOOL_ADMIN]);
         const { id } = req.params;
-        const { username, password, email, firstName, lastName, phone, address, bloodGroup, birthDate, gender, } = req.body;
+        const { username, password, email, name, phone, address, bloodGroup, birthDate, gender, } = req.body;
         const teacher = yield prisma.teacher.update({
             where: {
                 id: parseInt(id)
             },
             data: {
                 email,
-                firstName,
-                lastName,
+                name,
                 phone,
                 address,
                 bloodGroup,

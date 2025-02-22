@@ -24,36 +24,34 @@ router.get('/', (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
     try {
         (0, auth_1.isAuthenticated)(req);
         const parents = yield prisma.parent.findMany();
-        res.json(parents);
+        res.json({ data: parents });
     }
     catch (error) {
         next(error);
     }
 }));
-router.post('/', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+router.get('/by-school', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     try {
         (0, auth_1.isAuthenticated)(req, [auth_1.SCHOOL_ADMIN]);
-        const { username, password, email, firstName, lastName, phone, address, bloodGroup, birthDate, gender, } = req.body;
-        var data = {
-            email,
-            firstName,
-            lastName,
-            phone,
-            address,
-            bloodGroup,
-            birthDate,
-            gender,
-            auth: {}
-        };
-        var hashPassword = password ? bcryptjs_1.default.hashSync(password, 10) : undefined;
-        if (hashPassword && username) {
-            data.auth = {
-                username,
-                password: hashPassword
-            };
+        const schoolAdmin = yield prisma.schoolAdmin.findUnique({
+            where: { id: (_a = req.session.user) === null || _a === void 0 ? void 0 : _a.id },
+            include: {
+                school: true
+            }
+        });
+        if (((_b = schoolAdmin.school) === null || _b === void 0 ? void 0 : _b.length) < 0) {
+            throw new Error('School not found');
         }
-        const parent = yield prisma.parent.create({ data });
-        res.json(parent);
+        const parents = yield prisma.parent.findMany({
+            where: {
+                schoolId: schoolAdmin.school[0].id
+            },
+            include: {
+            // students : true
+            }
+        });
+        res.json({ data: parents });
     }
     catch (error) {
         next(error);
@@ -74,19 +72,98 @@ router.get('/:id', (req, res, next) => __awaiter(void 0, void 0, void 0, functio
         next(error);
     }
 }));
+router.post('/', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        (0, auth_1.isAuthenticated)(req, [auth_1.SCHOOL_ADMIN]);
+        const { username, password, email, name, phone, address, bloodGroup, birthDate, gender, } = req.body;
+        var data = {
+            email,
+            name,
+            phone,
+            address,
+            bloodGroup,
+            birthDate,
+            gender,
+            auth: {},
+            school: {}
+        };
+        var hashPassword = password ? bcryptjs_1.default.hashSync(password, 10) : undefined;
+        if (hashPassword && username) {
+            data.auth = {
+                create: {
+                    username,
+                    password: hashPassword
+                }
+            };
+        }
+        const parent = yield prisma.parent.create({ data });
+        res.json(parent);
+    }
+    catch (error) {
+        next(error);
+    }
+}));
+router.post('/with-school', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        (0, auth_1.isAuthenticated)(req, [auth_1.SCHOOL_ADMIN]);
+        // spread body
+        const { username, password, email, name, phone, address, bloodGroup, birthDate, gender, } = req.body;
+        // construct create input
+        var data = {
+            email,
+            name,
+            phone,
+            address,
+            bloodGroup,
+            birthDate,
+            gender,
+            auth: {},
+            school: {}
+        };
+        // connect school
+        const schoolAdmin = yield prisma.schoolAdmin.findUnique({
+            where: { id: (_a = req.session.user) === null || _a === void 0 ? void 0 : _a.id },
+            include: {
+                school: true
+            }
+        });
+        if (schoolAdmin === null || schoolAdmin === void 0 ? void 0 : schoolAdmin.school[0]) {
+            data.school = {
+                connect: {
+                    id: schoolAdmin.school[0].id
+                }
+            };
+        }
+        var hashPassword = password ? bcryptjs_1.default.hashSync(password, 10) : undefined;
+        // add auth
+        if (hashPassword && username) {
+            data.auth = {
+                create: {
+                    username,
+                    password: hashPassword
+                }
+            };
+        }
+        const parent = yield prisma.parent.create({ data });
+        res.json(parent);
+    }
+    catch (error) {
+        next(error);
+    }
+}));
 router.put('/:id', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         (0, auth_1.isAuthenticated)(req, [auth_1.SCHOOL_ADMIN, auth_1.PARENT]);
         const { id } = req.params;
-        const { username, password, email, firstName, lastName, phone, address, bloodGroup, birthDate, gender, } = req.body;
+        const { username, password, email, name, phone, address, bloodGroup, birthDate, gender, } = req.body;
         const parent = yield prisma.parent.update({
             where: {
                 id: parseInt(id)
             },
             data: {
                 email,
-                firstName,
-                lastName,
+                name,
                 phone,
                 address,
                 bloodGroup,

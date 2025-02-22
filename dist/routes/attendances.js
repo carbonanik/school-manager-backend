@@ -20,7 +20,40 @@ router.get('/', (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
     try {
         (0, auth_1.isAuthenticated)(req);
         const attendences = yield prisma.attendence.findMany();
-        res.json(attendences);
+        res.json({ data: attendences });
+    }
+    catch (error) {
+        next(error);
+    }
+}));
+router.get('/by-school', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    try {
+        (0, auth_1.isAuthenticated)(req, [auth_1.SCHOOL_ADMIN]);
+        const schoolAdmin = yield prisma.schoolAdmin.findUnique({
+            where: { id: (_a = req.session.user) === null || _a === void 0 ? void 0 : _a.id },
+            include: {
+                school: true
+            }
+        });
+        const attendences = yield prisma.attendence.findMany({
+            where: {
+                schoolId: (_b = schoolAdmin === null || schoolAdmin === void 0 ? void 0 : schoolAdmin.school[0]) === null || _b === void 0 ? void 0 : _b.id
+            },
+            include: {
+                student: {
+                    select: {
+                        name: true
+                    }
+                },
+                class: {
+                    select: {
+                        name: true
+                    }
+                },
+            }
+        });
+        res.json({ data: attendences });
     }
     catch (error) {
         next(error);
@@ -40,6 +73,50 @@ router.post('/', (req, res, next) => __awaiter(void 0, void 0, void 0, function*
             }
         });
         res.json(attendence);
+    }
+    catch (error) {
+        next(error);
+    }
+}));
+router.post('/bulk', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    try {
+        (0, auth_1.isAuthenticated)(req, [auth_1.SCHOOL_ADMIN]);
+        const schoolAdmin = yield prisma.schoolAdmin.findUnique({
+            where: { id: (_a = req.session.user) === null || _a === void 0 ? void 0 : _a.id },
+            include: {
+                school: true
+            }
+        });
+        if (((_b = schoolAdmin.school) === null || _b === void 0 ? void 0 : _b.length) < 0) {
+            throw new Error('School not found');
+        }
+        const data = [];
+        console.log(req.body);
+        // res.json({ data: data });
+        // return;
+        req.body.forEach((attendence) => {
+            data.push({
+                status: attendence.status,
+                inTime: attendence.inTime,
+                classId: attendence.classId,
+                studentId: attendence.studentId,
+                schoolId: schoolAdmin.school[0].id,
+            });
+        });
+        const attendences = yield prisma.attendence.createMany({
+            data: data
+        });
+        res.json(attendences);
+    }
+    catch (error) {
+        next(error);
+    }
+}));
+router.post('/from-device', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        console.log(req.body);
+        res.json({ "message": "success" });
     }
     catch (error) {
         next(error);

@@ -26,6 +26,33 @@ router.get('/', (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
         next(error);
     }
 }));
+router.get('/by-school', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c;
+    try {
+        (0, auth_1.isAuthenticated)(req, [auth_1.SCHOOL_ADMIN]);
+        const schoolAdmin = yield prisma.schoolAdmin.findUnique({
+            where: { id: (_a = req.session.user) === null || _a === void 0 ? void 0 : _a.id },
+            include: {
+                school: true
+            }
+        });
+        if (((_b = schoolAdmin.school) === null || _b === void 0 ? void 0 : _b.length) < 0) {
+            throw new Error('School not found');
+        }
+        const classes = yield prisma.class.findMany({
+            where: {
+                schoolId: (_c = schoolAdmin === null || schoolAdmin === void 0 ? void 0 : schoolAdmin.school[0]) === null || _c === void 0 ? void 0 : _c.id
+            },
+            include: {
+                supervisor: true
+            }
+        });
+        res.json({ data: classes });
+    }
+    catch (error) {
+        next(error);
+    }
+}));
 router.post('/', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         (0, auth_1.isAuthenticated)(req, [auth_1.SCHOOL_ADMIN]);
@@ -39,6 +66,44 @@ router.post('/', (req, res, next) => __awaiter(void 0, void 0, void 0, function*
             }
         });
         res.json(_class);
+    }
+    catch (error) {
+        next(error);
+    }
+}));
+router.post('/with-school', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c;
+    try {
+        (0, auth_1.isAuthenticated)(req, [auth_1.SCHOOL_ADMIN]);
+        const { name, capacity, supervisorId, } = req.body;
+        const schoolAdmin = yield prisma.schoolAdmin.findUnique({
+            where: { id: (_a = req.session.user) === null || _a === void 0 ? void 0 : _a.id },
+            include: {
+                school: true
+            }
+        });
+        if (((_b = schoolAdmin.school) === null || _b === void 0 ? void 0 : _b.length) < 0) {
+            throw new Error('School not found');
+        }
+        const schoolId = (_c = schoolAdmin === null || schoolAdmin === void 0 ? void 0 : schoolAdmin.school[0]) === null || _c === void 0 ? void 0 : _c.id;
+        const data = {
+            name,
+            capacity,
+            supervisor: {
+                connect: {
+                    id: supervisorId
+                }
+            },
+            school: {
+                connect: {
+                    id: schoolId
+                }
+            }
+        };
+        const _class = yield prisma.class.create({
+            data
+        });
+        res.json({ data: _class });
     }
     catch (error) {
         next(error);

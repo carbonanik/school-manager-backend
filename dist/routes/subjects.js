@@ -20,7 +20,36 @@ router.get('/', (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
     try {
         (0, auth_1.isAuthenticated)(req);
         const subjects = yield prisma.subject.findMany();
-        res.json(subjects);
+        res.json({ data: subjects });
+    }
+    catch (error) {
+        next(error);
+    }
+}));
+router.get('/by-school', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    try {
+        (0, auth_1.isAuthenticated)(req, [auth_1.SCHOOL_ADMIN]);
+        const schoolAdmin = yield prisma.schoolAdmin.findUnique({
+            where: { id: (_a = req.session.user) === null || _a === void 0 ? void 0 : _a.id },
+            include: {
+                school: true
+            }
+        });
+        const subjects = yield prisma.subject.findMany({
+            where: {
+                schoolId: (_b = schoolAdmin === null || schoolAdmin === void 0 ? void 0 : schoolAdmin.school[0]) === null || _b === void 0 ? void 0 : _b.id
+            },
+            include: {
+                teachers: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                }
+            }
+        });
+        res.json({ data: subjects });
     }
     catch (error) {
         next(error);
