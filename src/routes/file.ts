@@ -22,15 +22,17 @@ const minioClient = new Client({
 const bucketName = 'profile-pictures';
 
 // Ensure the bucket exists (create it if it does not)
-// minioClient.bucketExists(bucketName).then(
-//     async (exists) => {
-//         if (!exists) {
-//             await minioClient.makeBucket(bucketName);
-//         } else {
-//             console.log(`Bucket "${bucketName}" already exists.`);
-//         }
-//     }
-// );
+async function ensureBucketExists() {
+    try {
+        let exists = await minioClient.bucketExists(bucketName);
+        if (!exists) await minioClient.makeBucket(bucketName);
+    } catch (error) {
+        console.error('MinIO connection failed, retrying in 5 seconds...', error);
+        setTimeout(ensureBucketExists, 5000);
+    }
+}
+
+ensureBucketExists();
 
 const checkForFileSize = false;
 
