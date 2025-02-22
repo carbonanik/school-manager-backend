@@ -9,11 +9,39 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
         isAuthenticated(req)
         const subjects = await prisma.subject.findMany();
-        res.json(subjects);
+        res.json({ data: subjects });
     } catch (error) {
         next(error)
     }
 });
+
+router.get('/by-school', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        isAuthenticated(req, [SCHOOL_ADMIN])
+        const schoolAdmin = await prisma.schoolAdmin.findUnique({
+            where: { id: req.session.user?.id! },
+            include: {
+                school: true
+            }
+        });
+        const subjects = await prisma.subject.findMany({
+            where: {
+                schoolId: schoolAdmin?.school[0]?.id
+            },
+            include: {
+                teachers: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                }
+            }
+        });
+        res.json({ data: subjects });
+    } catch (error) {
+        next(error)
+    }
+})
 
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     try {

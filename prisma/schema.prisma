@@ -60,6 +60,7 @@ model School {
   //
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
+  FeeType        FeeType[]
 }
 
 model SchoolAdmin {
@@ -162,8 +163,8 @@ model Subject {
   name      String
   schoolId  Int?
   school    School?   @relation(fields: [schoolId], references: [id])
-  Teacher   Teacher[]
-  Lesson    Lesson[]
+  teachers  Teacher[]
+  lessons   Lesson[]
   //
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -270,4 +271,15 @@ model Accounts {
   //
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+}
+
+model FeeType {
+  id        Int      @id @default(autoincrement())
+  title     String?
+  amount    Float?
+  schoolId  Int?
+  school    School?  @relation(fields: [schoolId], references: [id])
+  //
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

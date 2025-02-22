@@ -77,6 +77,17 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
     }
 });
 
+router.get('name', (req: Request, res: Response, next: NextFunction) => {
+    try {
+        if (!req.session.user) {
+            throw new InvalidCredentialsError();
+        }
+        res.json({ message: 'Welcome', user: req.session.user });
+    } catch (error) {
+        next(error)
+    }
+})
+
 router.get('/get-user', (req: Request, res: Response, next: NextFunction) => {
     try {
         if (!req.session.user) {

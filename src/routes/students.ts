@@ -35,6 +35,9 @@ router.get('/by-school', async (req: Request, res: Response, next: NextFunction)
             },
             include: {
                 class: true,
+            },
+            orderBy: {
+                createdAt: 'desc'
             }
         });
         res.json({ data: students });
@@ -155,6 +158,7 @@ router.post('/with-school', async (req: Request, res: Response, next: NextFuncti
             bloodGroup,
             birthDate,
             gender,
+            image,
             classId,
             parentId,
         } = req.body;
@@ -167,6 +171,7 @@ router.post('/with-school', async (req: Request, res: Response, next: NextFuncti
             bloodGroup,
             birthDate,
             gender,
+            image,
             auth: {},
             school: {}
         }

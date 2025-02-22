@@ -20,6 +20,39 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     }
 });
 
+router.get('/analytics', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+
+        isAuthenticated(req, [SCHOOL_ADMIN]);
+
+        const schoolAdmin = await prisma.schoolAdmin.findUnique({
+            where: { id: req.session.user?.id! },
+            include: {
+                school: true
+            }
+        });
+
+        const schoolId = schoolAdmin?.school[0]?.id
+
+        if (!schoolId) {
+            throw new Error('School not found');
+        }
+
+        res.json({
+            data: {
+                studentCount: await prisma.student.count({ where: { schoolId } }),
+                teacherCount: await prisma.teacher.count({ where: { schoolId } }),
+                parentCount: await prisma.parent.count({ where: { schoolId } }),
+                maleStudentCount: await prisma.student.count({ where: { gender: 'male', schoolId } }),
+                femaleStudentCount: await prisma.student.count({ where: { gender: 'female', schoolId } }),
+            }
+        });
+
+    } catch (error) {
+        next(error);
+    }
+});
+
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
 
@@ -66,6 +99,8 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
         next(error)
     }
 });
+
+
 
 router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
     try {

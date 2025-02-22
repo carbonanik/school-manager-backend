@@ -14,6 +14,7 @@ import { attendenceRouter } from './routes/attendances';
 import { authenticationRouter } from './routes/authentication';
 import { accountsRouter } from './routes/accounts';
 import { feeRouter } from './routes/fees';
+import { feeTypeRouter } from './routes/fee-type'; 
 import { expenseRouter } from './routes/expences';
 import { errorHandleMiddleware } from './util/errorHandleMiddleware';
 import { sessionMiddleware } from './util/sessionMiddleware';
@@ -52,6 +53,7 @@ app.use('/api/accounts', accountsRouter);
 app.use('/api/file', fileRouter);
 app.use('/api/pdf-temp', pdfTempRouter);
 app.use('/api/pdf-generate', pdfGenerateRouter);
+app.use('/api/fee-types', feeTypeRouter);
 
 // Define User Type
 interface User {

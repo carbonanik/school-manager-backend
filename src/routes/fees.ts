@@ -24,7 +24,7 @@ router.get('/by-school', async (req: Request, res: Response, next: NextFunction)
         const schoolAdmin = await prisma.schoolAdmin.findUnique({
             where: { id: req.session.user?.id! },
             include: {
-                school: true
+                school: true,
             }
         });
 
@@ -37,7 +37,7 @@ router.get('/by-school', async (req: Request, res: Response, next: NextFunction)
             },
             include: {
                 student: true,
-                school: true
+                school: true,
             }
         });
         res.json({ data: fees });
