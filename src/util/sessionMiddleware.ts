@@ -10,7 +10,8 @@ export var sessionMiddleware = session({
     cookie: { 
         secure: true, 
         httpOnly: true, 
-        maxAge: 1000 * 60 * 60 * 24 
+        maxAge: 1000 * 60 * 60 * 24, 
+        // domain: '.at-tahfiz-international-madrasha.com'
     },
     proxy: true,
 });
