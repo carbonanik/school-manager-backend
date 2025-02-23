@@ -12,15 +12,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.authenticationRouter = void 0;
+exports.authenticationRouter = exports.SECRET_KEY = void 0;
 const express_1 = require("express");
 const client_1 = require("@prisma/client");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const auth_1 = require("../util/auth");
 const errors_1 = require("../util/errors");
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const prisma = new client_1.PrismaClient();
 const router = (0, express_1.Router)();
 exports.authenticationRouter = router;
+exports.SECRET_KEY = 'your-secret-key';
 router.post('/login', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { username, password, remember, } = req.body;
@@ -40,9 +42,9 @@ router.post('/login', (req, res, next) => __awaiter(void 0, void 0, void 0, func
         if (!bcryptjs_1.default.compareSync(password, auth.password)) {
             throw new errors_1.InvalidCredentialsError();
         }
-        if (remember) {
-            req.session.cookie.maxAge = 1000 * 60 * 60 * 24 * 7; // 7 days in milliseconds
-        }
+        // if (remember) {
+        //     req.session.cookie.maxAge = 1000 * 60 * 60 * 24 * 7; // 7 days in milliseconds
+        // }
         var userId;
         var userRole;
         if (auth.CentralAdmin) {
@@ -68,55 +70,37 @@ router.post('/login', (req, res, next) => __awaiter(void 0, void 0, void 0, func
         if (!userId || !userRole) {
             throw new errors_1.InvalidCredentialsError();
         }
-        req.session.user = {
+        const user = {
             id: userId,
             username: auth.username,
-            role: userRole,
+            role: userRole
         };
-        req.session.save();
-        res.json({ message: 'Login successful', user: req.session.user });
+        const token = jsonwebtoken_1.default.sign(user, exports.SECRET_KEY, { expiresIn: '1h' });
+        // req.session.user = {
+        //     id: userId,
+        //     username: auth!.username,
+        //     role: userRole,
+        // };
+        // req.session.save();
+        res.json({ message: 'Login successful', user, token });
     }
     catch (error) {
         next(error);
     }
 }));
-router.get('name', (req, res, next) => {
+router.get('/name', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        if (!req.session.user) {
-            throw new errors_1.InvalidCredentialsError();
-        }
-        res.json({ message: 'Welcome', user: req.session.user });
+        (0, auth_1.isAuthenticated)(req);
+        res.json({ message: 'Welcome', user: req === null || req === void 0 ? void 0 : req.user });
     }
     catch (error) {
         next(error);
     }
-});
+}));
 router.get('/get-user', (req, res, next) => {
     try {
-        if (!req.session.user) {
-            throw new errors_1.InvalidCredentialsError();
-        }
-        res.json({ message: 'Welcome', user: req.session.user });
-    }
-    catch (error) {
-        next(error);
-    }
-});
-router.get('/logout', (req, res, next) => {
-    try {
-        req.session.destroy((err) => {
-            if (err) {
-                console.error(err);
-                throw new errors_1.HTTPError('Logout failed', 500);
-            }
-            res.clearCookie("connect.sid", {
-                path: "/",
-                httpOnly: true,
-                secure: false, // Set to true in production (if using HTTPS)
-                sameSite: "lax",
-            });
-            res.json({ message: 'Logout successful' });
-        });
+        (0, auth_1.isAuthenticated)(req);
+        res.json({ message: 'Welcome', user: req.user });
     }
     catch (error) {
         next(error);

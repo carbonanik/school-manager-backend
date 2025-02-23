@@ -5,52 +5,67 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const dotenv_1 = __importDefault(require("dotenv"));
-const students_1 = require("./routes/students");
-const teachers_1 = require("./routes/teachers");
-const parents_1 = require("./routes/parents");
-const central_admin_1 = require("./routes/central_admin");
-const schools_1 = require("./routes/schools");
-const school_admin_1 = require("./routes/school_admin");
-const classes_1 = require("./routes/classes");
-const lessons_1 = require("./routes/lessons");
-const subjects_1 = require("./routes/subjects");
-const attendances_1 = require("./routes/attendances");
+// import { studentRouter } from './routes/students';
+// import { teacherRouter } from './routes/teachers';
+// import { parentRouter } from './routes/parents';
+// import { centralAdminRouter } from './routes/central_admin';
+// import { schoolRouter } from './routes/schools';
+// import { schoolAdminRouter } from './routes/school_admin';
+// import { classRouter } from './routes/classes';
+// import { lessonRouter } from './routes/lessons';
+// import { subjectRouter } from './routes/subjects';
+// import { attendenceRouter } from './routes/attendances';
 const authentication_1 = require("./routes/authentication");
-const accounts_1 = require("./routes/accounts");
-const fees_1 = require("./routes/fees");
-const fee_type_1 = require("./routes/fee-type");
-const expences_1 = require("./routes/expences");
+// import { accountsRouter } from './routes/accounts';
+// import { feeRouter } from './routes/fees';
+// import { feeTypeRouter } from './routes/fee-type'; 
+// import { expenseRouter } from './routes/expences';
 const errorHandleMiddleware_1 = require("./util/errorHandleMiddleware");
-const sessionMiddleware_1 = require("./util/sessionMiddleware");
-const file_1 = __importDefault(require("./routes/file"));
-const pdf_temp_1 = __importDefault(require("./routes/pdf-temp"));
-const pdf_generate_1 = __importDefault(require("./routes/pdf-generate"));
+// import { sessionMiddleware } from './util/sessionMiddleware';
+// import fileRouter from './routes/file';
+// import pdfTempRouter from './routes/pdf-temp';
+// import pdfGenerateRouter from './routes/pdf-generate';
 const cors_1 = __importDefault(require("cors"));
 dotenv_1.default.config();
 const port = process.env.PORT || 3001;
 const app = (0, express_1.default)();
-app.use((0, cors_1.default)({ origin: "http://localhost:3000", credentials: true }));
+// app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+const allowedOrigins = [
+    'http://77.37.44.205:3000',
+    'http://localhost:3000',
+    'https://at-tahfiz-international-madrasha.com'
+];
+app.use((0, cors_1.default)({
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, origin); // Allow the request
+        }
+        else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true
+}));
 app.use(express_1.default.json());
 app.set("view engine", "ejs");
-app.use(sessionMiddleware_1.sessionMiddleware);
-app.use('/api/students', students_1.studentRouter);
-app.use('/api/teachers', teachers_1.teacherRouter);
-app.use('/api/parents', parents_1.parentRouter);
-app.use('/api/central-admin', central_admin_1.centralAdminRouter);
-app.use('/api/schools', schools_1.schoolRouter);
-app.use('/api/school-admin', school_admin_1.schoolAdminRouter);
-app.use('/api/classes', classes_1.classRouter);
-app.use('/api/lessons', lessons_1.lessonRouter);
-app.use('/api/subjects', subjects_1.subjectRouter);
-app.use('/api/attendances', attendances_1.attendenceRouter);
+// app.set('trust proxy', 1);
+// app.use(sessionMiddleware);
+// app.use('/api/students', studentRouter);
+// app.use('/api/teachers', teacherRouter);
+// app.use('/api/parents', parentRouter);
+// app.use('/api/central-admin', centralAdminRouter);
+// app.use('/api/schools', schoolRouter);
+// app.use('/api/school-admin', schoolAdminRouter);
+// app.use('/api/classes', classRouter);
+// app.use('/api/lessons', lessonRouter);
+// app.use('/api/subjects', subjectRouter);
+// app.use('/api/attendances', attendenceRouter);
 app.use('/api/authentication', authentication_1.authenticationRouter);
-app.use('/api/fees', fees_1.feeRouter);
-app.use('/api/expenses', expences_1.expenseRouter);
-app.use('/api/accounts', accounts_1.accountsRouter);
-app.use('/api/file', file_1.default);
-app.use('/api/pdf-temp', pdf_temp_1.default);
-app.use('/api/pdf-generate', pdf_generate_1.default);
-app.use('/api/fee-types', fee_type_1.feeTypeRouter);
+// declare module "express-session" {
+//   interface SessionData {
+//     user: User;
+//   }
+// }
 app.get('/', (req, res) => {
     res.send('You found the API!');
 });

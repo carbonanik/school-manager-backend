@@ -38,7 +38,7 @@ router.get('/', (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
 }));
 router.post('/', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        (0, auth_1.isAuthenticated)(req, [auth_1.CENTRAL_ADMIN]);
+        // isAuthenticated(req, [CENTRAL_ADMIN])
         const { name, username, email, password, } = req.body;
         var hashPassword = bcryptjs_1.default.hashSync(password, 10);
         const admin = yield prisma.centralAdmin.create({

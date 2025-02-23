@@ -1,5 +1,9 @@
 import { Request } from "express";
+
+
 import { UnauthorizedError } from "./errors";
+import jwt from 'jsonwebtoken';
+import { SECRET_KEY } from "../routes/authentication";
 
 
 export const CENTRAL_ADMIN = 'CENTRAL_ADMIN';
@@ -9,15 +13,39 @@ export const PARENT = 'PARENT';
 export const STUDENT = 'STUDENT';
 
 
+// export var isAuthenticated = (req: Request, whoCanAccess: string[] | undefined = undefined): boolean => {
+//     if (req.session.user) {
+//         if (whoCanAccess?.length) {
+//             if (!whoCanAccess.includes(req.session.user.role!)) {
+//                 throw new UnauthorizedError();
+//             }
+//         }
+//         return true;
+//     } else {
+//         throw new UnauthorizedError();
+//     }
+// };
+
 export var isAuthenticated = (req: Request, whoCanAccess: string[] | undefined = undefined): boolean => {
-    if (req.session.user) {
-        if (whoCanAccess?.length) {
-            if (!whoCanAccess.includes(req.session.user.role!)) {
-                throw new UnauthorizedError();
-            }
-        }
+    
+    // const authHeader = req.headers['authorization'];
+    const token = req.cookies['auth.sms']// || authHeader && authHeader.split(' ')[1];
+
+    console.log(token);
+    if (!token) {
+        throw new UnauthorizedError();
+    }
+
+    try {
+        const user = jwt.verify(token, SECRET_KEY) as { id: number, username: string, role: string };
+        console.log(user);
+        req.user = {
+            id: user.id,
+            username: user.username,
+            role: user.role
+        };
         return true;
-    } else {
+    } catch (error) {
         throw new UnauthorizedError();
     }
 };

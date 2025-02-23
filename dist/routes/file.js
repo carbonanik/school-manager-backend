@@ -30,14 +30,20 @@ const minioClient = new minio_1.Client({
 });
 const bucketName = 'profile-pictures';
 // Ensure the bucket exists (create it if it does not)
-minioClient.bucketExists(bucketName).then((exists) => __awaiter(void 0, void 0, void 0, function* () {
-    if (!exists) {
-        yield minioClient.makeBucket(bucketName);
-    }
-    else {
-        console.log(`Bucket "${bucketName}" already exists.`);
-    }
-}));
+function ensureBucketExists() {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            let exists = yield minioClient.bucketExists(bucketName);
+            if (!exists)
+                yield minioClient.makeBucket(bucketName);
+        }
+        catch (error) {
+            console.error('MinIO connection failed, retrying in 5 seconds...', error);
+            setTimeout(ensureBucketExists, 5000);
+        }
+    });
+}
+ensureBucketExists();
 const checkForFileSize = false;
 router.post('/upload', upload.single('fileUpload'), (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
