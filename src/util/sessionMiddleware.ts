@@ -11,7 +11,8 @@ export var sessionMiddleware = session({
         secure: true, 
         httpOnly: true, 
         maxAge: 1000 * 60 * 60 * 24, 
-        domain: '.at-tahfiz-international-madrasha.com'
+        sameSite: 'none',
+        // domain: '.at-tahfiz-international-madrasha.com'
     },
     proxy: true,
 });
