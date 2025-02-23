@@ -28,7 +28,23 @@ const port = process.env.PORT || 3001;
 
 const app = express();
 
-app.use(cors({ origin: "*", credentials: true }));
+// app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+const allowedOrigins = [
+  'http://77.37.44.205:3000',
+  'http://localhost:3000',
+  'https://at-tahfiz-international-madrasha.com'
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, origin); // Allow the request
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
 
 app.use(express.json());
 
