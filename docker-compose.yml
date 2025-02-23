@@ -1,9 +1,15 @@
 services:
   app:
     build: .
-    container_name: school-manager-backend
+    container_name: school-backend
     restart: unless-stopped
     ports:
       - "3001:3001"
     env_file:
       - .env
+    networks:
+      - npm_net
+
+networks:
+  npm_net:
+    external: true
