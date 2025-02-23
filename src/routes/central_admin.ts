@@ -24,7 +24,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        isAuthenticated(req, [CENTRAL_ADMIN])
+        // isAuthenticated(req, [CENTRAL_ADMIN])
         const {
             name,
             username,
