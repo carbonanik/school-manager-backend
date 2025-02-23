@@ -8,11 +8,11 @@ export var sessionMiddleware = session({
     resave: false,
     saveUninitialized: false,
     cookie: { 
-        secure: true, 
+        secure: false, 
         httpOnly: true, 
         maxAge: 1000 * 60 * 60 * 24, 
         sameSite: 'none',
         // domain: '.at-tahfiz-international-madrasha.com'
     },
-    proxy: true,
+    // proxy: true,
 });
