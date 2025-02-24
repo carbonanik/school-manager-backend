@@ -14,9 +14,9 @@ export const STUDENT = 'STUDENT';
 
 
 // export var isAuthenticated = (req: Request, whoCanAccess: string[] | undefined = undefined): boolean => {
-//     if (req.session.user) {
+//     if (req.user) {
 //         if (whoCanAccess?.length) {
-//             if (!whoCanAccess.includes(req.session.user.role!)) {
+//             if (!whoCanAccess.includes(req.user.role!)) {
 //                 throw new UnauthorizedError();
 //             }
 //         }

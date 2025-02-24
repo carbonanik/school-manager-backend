@@ -40,7 +40,7 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
         }
 
         // if (remember) {
-        //     req.session.cookie.maxAge = 1000 * 60 * 60 * 24 * 7; // 7 days in milliseconds
+        //     req.cookie.maxAge = 1000 * 60 * 60 * 24 * 7; // 7 days in milliseconds
         // }
 
         var userId;
@@ -76,12 +76,12 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
 
         const token = jwt.sign(user, SECRET_KEY, { expiresIn: '1h' });
 
-        // req.session.user = {
+        // req.user = {
         //     id: userId,
         //     username: auth!.username,
         //     role: userRole,
         // };
-        // req.session.save();
+        // req.save();
         res.json({ message: 'Login successful', user, token });
 
     } catch (error) {
@@ -145,7 +145,7 @@ router.get('/get-user', (req: Request, res: Response, next: NextFunction) => {
 
 // router.get('/logout', (req: Request, res: Response, next: NextFunction) => {
 //     try {
-//         req.session.destroy((err) => {
+//         req.destroy((err) => {
 //             if (err) {
 //                 console.error(err);
 //                 throw new HTTPError('Logout failed', 500);
