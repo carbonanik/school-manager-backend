@@ -26,5 +26,5 @@ export var sessionMiddleware = session({
     secret: process.env.SESSION_SECRET || 'supersecretkey',
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false, httpOnly: true, maxAge: 1000 * 60 * 60 * 24 },
+    cookie: { secure: false, httpOnly: true, maxAge: 1000 * 60 * 60 * 24, domain: 'api.at-tahfiz-international-madrasha.com' },
 });
