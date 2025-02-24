@@ -69,6 +69,7 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
 
         const user = {
             id: userId,
+            authId: auth.id,
             username: auth.username,
             role: userRole
         }
@@ -93,7 +94,39 @@ router.get('/name', async (req: Request, res: Response, next: NextFunction) => {
 
         isAuthenticated(req)
 
-        res.json({ message: 'Welcome', user: req?.user });
+        if (!req.user) {
+            throw new HTTPError('User not authenticated', 401);
+        }
+
+        var auth = await prisma.authInfo.findUnique({
+            where: { id: req.user.authId },
+            include: {
+                CentralAdmin: true,
+                SchoolAdmin: true,
+                Teacher: true,
+                Parent: true,
+                Student: true
+            },
+        });
+
+        if (!auth) {
+            throw new HTTPError('User not found', 404);
+        }
+
+        let name: string | null = null;
+        if (auth.CentralAdmin) {
+            name = auth.CentralAdmin.name;
+        } else if (auth.SchoolAdmin) {
+            name = auth.SchoolAdmin.name;
+        } else if (auth.Teacher) {
+            name = auth.Teacher.name;
+        } else if (auth.Parent) {
+            name = auth.Parent.name;
+        } else if (auth.Student) {
+            name = auth.Student.name;
+        }
+
+        res.json({ name });
 
     } catch (error) {
         next(error)

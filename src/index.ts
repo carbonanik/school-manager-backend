@@ -78,6 +78,7 @@ app.use('/api/authentication', authenticationRouter);
 // Define User Type
 interface User {
   id: number;
+  authId: number;
   username: string;
   role: string;
 }

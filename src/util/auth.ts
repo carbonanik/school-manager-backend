@@ -37,10 +37,17 @@ export var isAuthenticated = (req: Request, whoCanAccess: string[] | undefined =
     }
 
     try {
-        const user = jwt.verify(token, SECRET_KEY) as { id: number, username: string, role: string };
-        console.log(user);
+        const user = jwt.verify(token, SECRET_KEY) as { id: number, authId: number, username: string, role: string };
+        
+        if (whoCanAccess?.length) {
+            if (!whoCanAccess.includes(user.role)) {
+                throw new UnauthorizedError();
+            }
+        }
+
         req.user = {
             id: user.id,
+            authId: user.authId,
             username: user.username,
             role: user.role
         };
