@@ -271,4 +271,20 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
     }
 });
 
+
+router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        isAuthenticated(req, [SCHOOL_ADMIN])
+        const { id } = req.params;
+        const student = await prisma.student.delete({
+            where: {
+                id: parseInt(id)
+            }
+        });
+        res.json(student);
+    } catch (error) {
+        next(error)
+    }
+});
+
 export { router as studentRouter };

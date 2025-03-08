@@ -15,7 +15,7 @@ import { attendenceRouter } from './routes/attendances';
 import { authenticationRouter } from './routes/authentication';
 import { accountsRouter } from './routes/accounts';
 import { feeRouter } from './routes/fees';
-import { feeTypeRouter } from './routes/fee-type'; 
+import { feeTypeRouter } from './routes/fee-type';
 import { expenseRouter } from './routes/expences';
 import { errorHandleMiddleware } from './util/errorHandleMiddleware';
 // import { sessionMiddleware } from './util/sessionMiddleware';
@@ -33,7 +33,8 @@ const app = express();
 const allowedOrigins = [
   'http://77.37.44.205:3000',
   'http://localhost:3000',
-  'https://at-tahfiz-international-madrasha.com'
+  'https://at-tahfiz-international-madrasha.com',
+  'https://dashboard.at-tahfiz-international-madrasha.com',
 ];
 
 app.use(cors({
@@ -85,7 +86,7 @@ interface User {
 
 declare module "express" {
   export interface Request {
-      user?: User;
+    user?: User;
   }
 }
 

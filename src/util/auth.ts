@@ -31,7 +31,6 @@ export var isAuthenticated = (req: Request, whoCanAccess: string[] | undefined =
     // const authHeader = req.headers['authorization'];
     const token = req.cookies['auth.sms']// || authHeader && authHeader.split(' ')[1];
 
-    console.log(token);
     if (!token) {
         throw new UnauthorizedError();
     }

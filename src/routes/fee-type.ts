@@ -49,11 +49,13 @@ router.post('/with-school', async (req: Request, res: Response, next: NextFuncti
         const {
             title,
             amount,
+            billingType,
         } = req.body
 
         var data: Prisma.FeeTypeCreateInput = {
             title,
             amount: parseFloat(amount),
+            billingType,
         }
 
         const schoolAdmin = await prisma.schoolAdmin.findUnique({

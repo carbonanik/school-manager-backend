@@ -38,6 +38,9 @@ router.get('/by-school', async (req: Request, res: Response, next: NextFunction)
             include: {
                 student: true,
                 school: true,
+            },
+            orderBy: {
+                createdAt: 'desc'
             }
         });
         res.json({ data: fees });
@@ -76,6 +79,9 @@ router.post('/with-calclution', async (req: Request, res: Response, next: NextFu
             status,
             date,
             studentId,
+            feeTypeId,
+            months,
+            year
         } = req.body;
 
         const schoolAdmin = await prisma.schoolAdmin.findUnique({
@@ -94,6 +100,8 @@ router.post('/with-calclution', async (req: Request, res: Response, next: NextFu
             details,
             status,
             date,
+            months,
+            year,
             school: {
                 connect: {
                     id: defaultSchoolId
@@ -102,6 +110,14 @@ router.post('/with-calclution', async (req: Request, res: Response, next: NextFu
             student: {
                 connect: {
                     id: parseInt(studentId)
+                }
+            }
+        }
+
+        if (feeTypeId) {
+            data.feeType = {
+                connect: {
+                    id: parseInt(feeTypeId)
                 }
             }
         }

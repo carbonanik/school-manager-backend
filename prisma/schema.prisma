@@ -231,6 +231,11 @@ model Fee {
   details        String?
   status         PaymentStatus?
   date           DateTime?
+  months         Int[]
+  year           Int?
+  //
+  feeTypeId      Int?
+  feeType        FeeType?       @relation(fields: [feeTypeId], references: [id])
   schoolId       Int?
   school         School?        @relation(fields: [schoolId], references: [id])
   studentId      Int?
@@ -274,12 +279,20 @@ model Accounts {
 }
 
 model FeeType {
-  id        Int      @id @default(autoincrement())
-  title     String?
-  amount    Float?
-  schoolId  Int?
-  school    School?  @relation(fields: [schoolId], references: [id])
+  id          Int          @id @default(autoincrement())
+  title       String?
+  amount      Float?
+  billingType BillingType?
+  schoolId    Int?
+  school      School?      @relation(fields: [schoolId], references: [id])
   //
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  Fee         Fee[]
+}
+
+enum BillingType {
+  Monthly
+  Yearly
+  OneTime
 }
