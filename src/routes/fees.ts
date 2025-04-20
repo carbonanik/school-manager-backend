@@ -18,6 +18,66 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     }
 });
 
+router.get('/summery', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        isAuthenticated(req, [SCHOOL_ADMIN]);
+        const schoolAdmin = await prisma.schoolAdmin.findUnique({
+            where: { id: req.user?.id! },
+            include: {
+                school: true,
+            }
+        });
+
+        if (schoolAdmin!.school?.length < 0) {
+            throw new Error('School not found');
+        }
+
+        const schoolId = schoolAdmin!.school[0].id;
+        const currentYear = new Date().getFullYear();
+
+
+        const students = await prisma.student.findMany({
+            where: { schoolId: schoolId },
+            select: {
+                id: true,
+                name: true,
+                fee: {
+                    where: { year: currentYear },
+                    select: {
+                        paidAmount: true,
+                        months: true,
+                    },
+                }
+            },
+        });
+
+        const feeSummery: Record<number, any> = {};
+
+        students.forEach((student) => {
+            feeSummery[student.id] = {
+                name: student.name,
+                monthlyFee: {},
+            }
+
+            student.fee.forEach((fee) => {
+                fee.months.forEach((month) => {
+                    if (!feeSummery[student.id].monthlyFee[month]) {
+                        feeSummery[student.id].monthlyFee[month] = 0;
+                    }
+                    feeSummery[student.id].monthlyFee[month] += ((fee.paidAmount ?? 0) / fee.months.length);
+                });
+            });
+        });
+
+        res.json({
+            data: feeSummery
+        });
+
+    } catch (error) {
+        next(error)
+    }
+});
+
 router.get('/by-school', async (req: Request, res: Response, next: NextFunction) => {
     try {
         isAuthenticated(req, [SCHOOL_ADMIN]);

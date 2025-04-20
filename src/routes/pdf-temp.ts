@@ -29,7 +29,7 @@ router.get("/generate", async (req, res, next) => {
             console.log("PDF generated");
         } catch (error) {
             console.log(error);
-            throw new HTTPError('Failed to generate PDF', 500);
+            throw new HTTPError(500, 'Failed to generate PDF');
         }
 
         var uploadResponse: Response;
@@ -47,7 +47,7 @@ router.get("/generate", async (req, res, next) => {
             });
             console.log("PDF uploaded");
         } catch (error) {
-            throw new HTTPError('Failed to upload PDF', 500);
+            throw new HTTPError(500, 'Failed to upload PDF');
         }
 
         const buffer = await pdfBlob.arrayBuffer();

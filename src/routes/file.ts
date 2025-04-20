@@ -39,11 +39,11 @@ const checkForFileSize = false;
 router.post('/upload', upload.single('fileUpload'), async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (!req.file) {
-            throw new HTTPError('No file uploaded', 400);
+            throw new HTTPError(400, 'No file uploaded');
         }
         // send error if file size is greater than 1MB
         if (checkForFileSize && req.file.size > 1000000) {
-            throw new HTTPError('File size must be less than 1MB', 400);
+            throw new HTTPError(400, 'File size must be less than 1MB');
         }
 
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);

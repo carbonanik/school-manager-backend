@@ -1,5 +1,5 @@
 export class HTTPError extends Error {
-    constructor(message: string, public status: number) {
+    constructor(public status: number,message: string) {
         super(message);
         this.name = 'HTTPError';
     }
@@ -7,14 +7,14 @@ export class HTTPError extends Error {
 
 export class UnauthorizedError extends HTTPError {
     constructor() {
-        super('Unauthorized', 401);
+        super(401, 'Unauthorized');
         this.name = 'UnauthorizedError';
     }
 }
 
 export class InvalidCredentialsError extends HTTPError {
     constructor() {
-        super('Invalid credentials', 401);
+        super(401, 'Invalid credentials');
         this.name = 'InvalidCredentialsError';
     }
 }

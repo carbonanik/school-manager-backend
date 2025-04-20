@@ -95,7 +95,7 @@ router.get('/name', async (req: Request, res: Response, next: NextFunction) => {
         isAuthenticated(req)
 
         if (!req.user) {
-            throw new HTTPError('User not authenticated', 401);
+            throw new HTTPError(401, 'User not authenticated');
         }
 
         var auth = await prisma.authInfo.findUnique({
@@ -110,7 +110,7 @@ router.get('/name', async (req: Request, res: Response, next: NextFunction) => {
         });
 
         if (!auth) {
-            throw new HTTPError('User not found', 404);
+            throw new HTTPError(404, 'User not found', );
         }
 
         let name: string | null = null;

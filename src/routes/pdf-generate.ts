@@ -34,7 +34,7 @@ router.get("/student-card/:id", async (req, res) => {
         });
     } catch (error) {
         console.error(error);
-        throw new HTTPError("Failed to render student card", 500);
+        throw new HTTPError(500, "Failed to render student card");
     }
 });
 
@@ -71,7 +71,7 @@ router.get("/student-card-pdf/:id", async (req, res) => {
 
 
     } catch (error) {
-        throw new HTTPError("Failed to render student card", 500);
+        throw new HTTPError(500, "Failed to render student card");
     }
 });
 
